@@ -60,7 +60,7 @@ public class RackMapper {
 
         if (devices != null && !devices.isEmpty()) {
             Set<NetworkDeviceResponseDTO> networkDto = devices.stream()
-                    .map(NetworkDeviceMapaper::toDTO)
+                    .map(NetworkDeviceMapper::toDTO)
                     .collect(Collectors.toSet());
             dto.setNetworkDevices(networkDto);
         }

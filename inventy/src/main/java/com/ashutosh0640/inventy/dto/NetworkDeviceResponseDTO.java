@@ -1,12 +1,12 @@
 package com.ashutosh0640.inventy.dto;
 
-import com.ashutosh0640.inventy.entity.Interfaces;
-import com.ashutosh0640.inventy.entity.User;
 import com.ashutosh0640.inventy.enums.HostType;
+import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.Set;
 
+@Data
 public class NetworkDeviceResponseDTO {
 
     private Long id;
@@ -31,5 +31,9 @@ public class NetworkDeviceResponseDTO {
 
     private Set<InterfaceDTO> interfaces;
 
-    private Set<User> users;
+    private RackResponseDTO rack;
+
+    private Short rackSlotNumber;
+
+    private Set<UserResponseDTO> users;
 }

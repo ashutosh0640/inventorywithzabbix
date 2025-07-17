@@ -36,7 +36,7 @@ public class BareMetalMapper {
         dtos.setModelName(server.getModelName());
         dtos.setSerialNumber(server.getSerialNumber());
         dtos.setManagement(server.getManagement());
-        dtos.setRackId(server.getRack().getId());
+        dtos.setRack(RackMapper.toDTO(server.getRack()));
         dtos.setRackSlotNumber(server.getRackSlotNumber());
         dtos.setCreatedAt(server.getCreatedAt());
         dtos.setUpdatedAt(server.getUpdatedAt());

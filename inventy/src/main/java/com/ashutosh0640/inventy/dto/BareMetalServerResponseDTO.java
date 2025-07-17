@@ -26,7 +26,7 @@ public class BareMetalServerResponseDTO {
     private String serialNumber;
     private Set<InterfaceDTO> interfaces;
     private ManagementType management;
-    private Long rackId;
+    private RackResponseDTO rack;
     private Short rackSlotNumber;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

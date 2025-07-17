@@ -12,6 +12,9 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface RackSlotsRepository extends JpaRepository<RackSlots, Long> {
 
+    @Query("SELECT count(s) FROM RackSlots s WHERE s.rack.id = :rackId AND s.slotNumber = :slotNumber AND s.status = 'EMPTY'")
+    Long getRackEmptySlotNumber(@Param("rackId") Long rackId, @Param("slotNumber") Short slotNumber);
+
 
     @Modifying
     @Transactional

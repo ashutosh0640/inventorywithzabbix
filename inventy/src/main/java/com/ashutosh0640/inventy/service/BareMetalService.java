@@ -54,17 +54,11 @@ public class BareMetalService {
     public BareMetalServerResponseDTO save(BareMetalServerRequestDTO dto) {
         try {
             LOGGER.info("Fetching bare metal server rack with ID: {}", dto.getRackId());
-            Racks rack = rackRepository.findById(dto.getRackId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Bare metal's rack not found with ID: " + dto.getRackId()));
+            Racks rack = rackRepository.getReferenceById(dto.getRackId());
 
-            Set<User> users = dto.getUserIds() != null && !dto.getUserIds().isEmpty()
-                    ? dto.getUserIds().stream()
-                    .map(id -> userRepository.findById(id)
-                            .orElseThrow(() -> new ResourceNotFoundException("User not found by id: " + id)))
-                    .collect(Collectors.toSet())
-                    : new HashSet<>();
+            List<User> userEntities = userRepository.findAllById(dto.getUserIds());
 
-            BareMetalServers bareMetal = bareMetalRepository.save(BareMetalMapper.toEntity(dto, rack, users));
+            BareMetalServers bareMetal = bareMetalRepository.save(BareMetalMapper.toEntity(dto, rack, new HashSet<>(userEntities)));
             LOGGER.info("Saving bareMetal: {}", bareMetal);
 
             Set<Interfaces> in = dto.getInterfaces().stream().map(i -> {
