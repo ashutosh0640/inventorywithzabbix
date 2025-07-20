@@ -7,8 +7,8 @@ import type { ProjectReqDTO } from '../types/requestDto';
 import { ProjectCard } from '../components/ui/project/ProjectCard';
 import { ProjectTable } from '../components/ui/project/ProjectTable';
 import { ProjectForm } from '../components/ui/project/ProjectForm';
-import AlertMsg from '../components/ui/AlertMsg';
-import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModel';
+// import AlertMsg from '../components/ui/AlertMsg';
+// import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModel';
 import {
     Grid3X3,
     List,
@@ -43,7 +43,7 @@ const ProjectPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [isFormOpen, setIsFormOpen] = useState(false);
-    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [addingProject, setAddingProject] = useState<ProjectReqDTO | null>(null);
 
@@ -60,20 +60,20 @@ const ProjectPage: React.FC = () => {
         setIsFormOpen(true);
     };
 
-    const handleDeletemodel = (projectId: number) => {
-        setIsDeleteModalOpen(true);
-    };
+    // const handleDeletemodel = (projectId: number) => {
+    //     setIsDeleteModalOpen(true);
+    // };
 
-    const closeDeleteModal = () => {
-        setIsDeleteModalOpen(false);
-        console.log('Delete modal closed', isDeleteModalOpen);
-    }
+    // const closeDeleteModal = () => {
+    //     setIsDeleteModalOpen(false);
+    //     console.log('Delete modal closed', isDeleteModalOpen);
+    // }
 
     const handleDelete = (projectId: number) => {
         console.log('Deleting project with ID:', projectId);
         deleteProject(projectId, {
             onSuccess: () => {
-                setIsDeleteModalOpen(false);
+                // setIsDeleteModalOpen(false);
                 setProjects(projects.filter(l => l.id !== projectId));
             },
             onError: (error) => {

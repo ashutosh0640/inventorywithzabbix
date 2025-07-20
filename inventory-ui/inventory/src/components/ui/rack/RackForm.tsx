@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Rack } from '../types/rack';
-import { User, Location } from '../types/project';
+import type { Rack, User, Location } from '../../../types/responseDto';
 import { X, Server, MapPin, Users } from 'lucide-react';
+import type { RackReqDTO } from '../../../types/requestDto';
 
 interface RackFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (rack: Omit<Rack, 'id' | 'createdAt'>) => void;
+  onSubmit: (rack: RackReqDTO) => void;
   rack?: Rack | null;
-  availableUsers: User[];
-  availableLocations: Location[];
+  availableUsers: User[] | [];
+  availableLocations: Location[] | [];
 }
 
 export const RackForm: React.FC<RackFormProps> = ({
@@ -22,9 +22,9 @@ export const RackForm: React.FC<RackFormProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     name: '',
-    totalSlot: 24,
-    locationId: '',
-    usersId: [] as string[],
+    totalSlot: 42,
+    locationId: undefined as number | undefined,
+    usersId: [] as number[],
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -38,14 +38,14 @@ export const RackForm: React.FC<RackFormProps> = ({
           name: rack.name,
           totalSlot: rack.totalSlot,
           locationId: rack.location.id,
-          usersId: rack.users.map(u => u.id),
+          usersId: rack.user.map(u => u.id),
         });
       } else {
         // Add mode - reset form
         setFormData({
           name: '',
-          totalSlot: 24,
-          locationId: '',
+          totalSlot: 42,
+          locationId: undefined,
           usersId: [],
         });
       }
@@ -74,7 +74,7 @@ export const RackForm: React.FC<RackFormProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -82,18 +82,18 @@ export const RackForm: React.FC<RackFormProps> = ({
     onSubmit({
       name: formData.name.trim(),
       totalSlot: formData.totalSlot,
-      locationId: formData.locationId,
+      locationId: formData.locationId ?? 0,
       usersId: formData.usersId,
     });
 
     onClose();
   };
 
-  const handleUserToggle = (userId: string) => {
+  const handleUserToggle = (userId: number) => {
     setFormData(prev => ({
       ...prev,
-      usersId: prev.usersId.includes(userId)
-        ? prev.usersId.filter(id => id !== userId)
+      usersId: prev.usersId?.includes(userId)
+        ? prev.usersId?.filter(id => id !== userId)
         : [...prev.usersId, userId]
     }));
   };
@@ -132,9 +132,8 @@ export const RackForm: React.FC<RackFormProps> = ({
                 id="name"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.name ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? 'border-red-300' : 'border-gray-300'
+                  }`}
                 placeholder="Enter rack name (e.g., Main Server Rack A1)"
               />
               {errors.name && (
@@ -154,9 +153,8 @@ export const RackForm: React.FC<RackFormProps> = ({
                 max="100"
                 value={formData.totalSlot}
                 onChange={(e) => setFormData(prev => ({ ...prev, totalSlot: parseInt(e.target.value) || 0 }))}
-                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                  errors.totalSlot ? 'border-red-300' : 'border-gray-300'
-                }`}
+                className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.totalSlot ? 'border-red-300' : 'border-gray-300'
+                  }`}
                 placeholder="Enter total number of slots"
               />
               {errors.totalSlot && (
@@ -173,9 +171,8 @@ export const RackForm: React.FC<RackFormProps> = ({
                 <MapPin size={16} className="inline mr-1" />
                 Select Location *
               </label>
-              <div className={`border rounded-lg p-3 max-h-40 overflow-y-auto ${
-                errors.locationId ? 'border-red-300' : 'border-gray-300'
-              }`}>
+              <div className={`border rounded-lg p-3 max-h-40 overflow-y-auto ${errors.locationId ? 'border-red-300' : 'border-gray-300'
+                }`}>
                 {availableLocations.map((location) => (
                   <label
                     key={location.id}
@@ -190,7 +187,7 @@ export const RackForm: React.FC<RackFormProps> = ({
                     />
                     <div className="flex-1">
                       <p className="text-sm font-medium text-gray-900">{location.name}</p>
-                      <p className="text-xs text-gray-500">{location.address}</p>
+                      {/* <p className="text-xs text-gray-500">{location.address}</p> */}
                     </div>
                   </label>
                 ))}
@@ -220,10 +217,10 @@ export const RackForm: React.FC<RackFormProps> = ({
                     />
                     <div className="flex items-center space-x-2 flex-1">
                       <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-medium">
-                        {user.name.split(' ').map(n => n[0]).join('')}
+                        {user.fullName.split(' ').map(n => n[0]).join('')}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{user.name}</p>
+                        <p className="text-sm font-medium text-gray-900">{user.fullName}</p>
                         <p className="text-xs text-gray-500">{user.email}</p>
                       </div>
                     </div>

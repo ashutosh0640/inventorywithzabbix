@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { baremetalsAPI } from '../../service/inventoryapi';
 import type { BareMetal } from '../../types/responseDto';
+import { useAppSelector } from '../../slice/hooks';
 
 
 export const useBaremetal = () => {
@@ -117,9 +118,10 @@ export const useBareMetalServerByModel = (model: string) => {
 }
 
 
-export const useBareMetalServerByRackAndUser = (rackId: number, id: number) => {
+export const useBareMetalServerByRackAndUser = (rackId: number) => {
+    const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<BareMetal[], Error>({
-        queryKey: ['BareMetals', 'byRackAndUser', rackId, id],
+        queryKey: ['BareMetals', 'byrack', rackId, loginDetails?.id],
         queryFn: async () => {
             const response = await baremetalsAPI.findByRackAndUser(rackId);
             return response;

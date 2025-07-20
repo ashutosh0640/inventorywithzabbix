@@ -94,23 +94,23 @@ export interface Interface {
 
 export interface BareMetal {
     id: number;
-    brandName: string;
-    serverName: string;
+    name: string;
+    type: string;
+    manufacturer: string;
     modelName: string;
     serialNumber: string;
-    ipAddress: string;
-    status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | string;
-    os: string;
+    interfaces: Interface[];
+    management: string;
+    rack: Rack;
+    rackSlotNumber: number;
     createdAt: string;
     updatedAt: string;
-    rackId: number;
-    rackPosition: string;
     vp: VirtualPlatform[];
     user: User[];
 }
 
 
-export interface networkDevices {
+export interface NetworkDevices {
 
     id: number;
     name: string;
@@ -118,7 +118,13 @@ export interface networkDevices {
     manufacturer: string;
     model: string;
     serialNumber: string;
-    osVersion: string;
+    osVersion: string,
+    interfaces: Interface[];
+    numberOfPort: number;
+    rack: Rack;
+    rackSlotNumber: number;
+    users: User[]
+
 
 
 }
@@ -175,6 +181,17 @@ export type ViewMode = 'card' | 'table';
 
 
 
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  numberOfElements: number;
+  number: number; // current page (zero-based)
+  size: number;   // size per page
+  first: boolean;
+  last: boolean;
+  empty: boolean;
+}
 
 
 

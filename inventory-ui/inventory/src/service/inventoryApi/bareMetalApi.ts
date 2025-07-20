@@ -31,6 +31,10 @@ export const baremetalsAPI = {
         const response = await api.get(`/api/v1/baremetal/${baremetalId}/users`);
         return response.data;
     },
+    getBareMetalServerByIdsAndUser: async (ids: []) => {
+        const response = await api.post('/api/v1/baremetal/users/ids', ids);
+        return response.data;
+    },
     findBySerialNumber: async (sno: string) => {
         const response = await api.get(`/api/v1/baremetal/search/by-sno?sno=${sno}`);
         return response.data;

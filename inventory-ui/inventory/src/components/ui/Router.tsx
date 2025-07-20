@@ -9,9 +9,11 @@ import Virtualizations from '../../pages/VirtualizationPage';
 import LayoutRoute from '../routes/LayoutRoutes';
 import PrivateRoute from './PrivateRoutes';
 import { LoginRoute } from '../routes/LoginRoutes';
+import { RackDetails } from '../ui/rack/RackDetails';
 
 
 const Router = () => {
+  console.log("Router.tsx page invoked.")
   return (
     <BrowserRouter>
       <Routes>
@@ -36,7 +38,7 @@ const Router = () => {
               </Route>
               <Route path="racks">
                 <Route index element={<Racks />} />
-                <Route path=":id" element={<div>Rack Details</div>} />
+                <Route path=":id" element={<RackDetails />} />
                 <Route path=":id/baremetals" element={<div>Baremetals in Rack</div>} />
               </Route>
               <Route path="baremetals">

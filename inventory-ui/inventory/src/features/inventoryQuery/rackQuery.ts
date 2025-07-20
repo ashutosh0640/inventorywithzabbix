@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { racksAPI } from '../../service/inventoryapi';
 import type { RackReqDTO } from '../../types/requestDto';
-import type { Rack } from '../../types/responseDto';
+import type { Rack, Page } from '../../types/responseDto';
+import { useAppSelector } from '../../slice/hooks';
 
 // Get all racks
 export const useRacks = () => {
@@ -20,11 +21,38 @@ export const useRackById = (id: number) => {
     });
 };
 
-// Get racks for user (paged)
-export const useRacksForUserPaged = (pageSize: number, pageNumber: number) => {
+export const useRackByIdAndUser = (id: number) => {
+    const loginDetails = useAppSelector((state) => state.auth.loginDetails);
+    return useQuery<Rack, Error>({
+        queryKey: ['rack', id, loginDetails?.id],
+        queryFn: () => racksAPI.getRacksByIdForUser(id),
+        enabled: !!id,
+    });
+}
+
+// Get racks for user
+export const useRacksForUser = () => {
+    const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<Rack[], Error>({
-        queryKey: ['racks', 'user', { pageSize, pageNumber }],
-        queryFn: () => racksAPI.getRacksForUserPaged(pageSize, pageNumber),
+        queryKey: ['racks', loginDetails?.id],
+        queryFn: () => racksAPI.getRacksForUser(),
+    });
+};
+
+// Get racks by location for user 
+export const useRacksByLocationForUser = (locationid: number) => {
+    const loginDetails = useAppSelector((state) => state.auth.loginDetails);
+    return useQuery<Rack[], Error>({
+        queryKey: ['racks', locationid, loginDetails?.id],
+        queryFn: () => racksAPI.getRacksByLocationForUser(locationid),
+    });
+};
+
+// Get racks for user (paged)
+export const useRacksForUserPaged = (page: number, size: number) => {
+    return useQuery<Page<Rack>, Error>({
+        queryKey: ['racks', 'user', { page, size }],
+        queryFn: () => racksAPI.getRacksForUserPaged(page, size),
     });
 };
 
@@ -38,14 +66,11 @@ export const useRacksCountByUser = (id: number) => {
 }
 
 
-
-
-
 // Search by name (paged)
-export const useSearchRacksByNamePaged = (name: string, pageSize: number, pageNumber: number) => {
-    return useQuery<Rack[], Error>({
-        queryKey: ['racks', 'search', { name, pageSize, pageNumber }],
-        queryFn: () => racksAPI.searchByNamePaged(name, pageSize, pageNumber),
+export const useSearchRacksByNamePaged = (name: string, page: number, size: number) => {
+    return useQuery<Page<Rack>, Error>({
+        queryKey: ['racks', 'search', { name, page, size }],
+        queryFn: () => racksAPI.searchByNamePaged(name, page, size),
         enabled: !!name, // Only run when name is non-empty
     });
 };

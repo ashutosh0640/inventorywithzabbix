@@ -5,7 +5,7 @@ import Layout from '../layout/Layout';
 const LayoutRoutes = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  
+
   // Extract title from the current path if needed
   const getTitleFromPath = (path: string) => {
     // Implement your logic to derive title from path
@@ -20,7 +20,7 @@ const LayoutRoutes = () => {
     return 'Default Title';
   };
 
-    // Extract title from the current path if needed
+  // Extract title from the current path if needed
   const getSubTitleFromPath = (path: string) => {
     // Implement your logic to derive title from path
     if (path.includes('/inventory/location')) return 'Locations';
@@ -34,7 +34,7 @@ const LayoutRoutes = () => {
     if (path.includes('/zabbix/hostgroup')) return 'Host Group';
     if (path.includes('/zabbix/templates')) return 'Templates';
     if (path.includes('/zabbix/templategroup')) return 'Template Group';
-    
+
     return '';
   };
 
@@ -48,7 +48,7 @@ const LayoutRoutes = () => {
       currentPath={location.pathname}
       onNavigate={navigate}
     >
-      <Outlet />
+      <Outlet context={{ onNavigate: navigate }} />
     </Layout>
   );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppDispatch } from '../slice/hooks';
-import { Database, AlertCircle } from 'lucide-react';
+import { EyeClosed, Eye, Database, AlertCircle } from 'lucide-react';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import type { LoginReqDTO } from '../types/requestDto';
@@ -10,10 +10,13 @@ interface LoginPageProps {
     onLoginSuccess: () => void;
 }
 
+type password = "password" | "text";
+
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const dispatch = useAppDispatch();
     const { mutate: login, isPending, isError, error: loginErr } = useLogin();
     const [isLoading, setIsLoading] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState<LoginReqDTO>({
         username: '',
         password: ''
@@ -28,6 +31,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
             ...prev,
             [name]: value
         }));
+    };
+
+    const togglePasswordVisibility = () => {
+        setShowPassword(prev => !prev);
     };
 
 
@@ -62,11 +69,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     };
 
 
-
     return (
-        <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8">
-                <div className="text-center">
+        <div className=" min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+            <div className=" max-w-screen-md w-full space-y-8 flex flex-row items-stretch justify-center">
+                <div className=" text-center flex flex-col items-center justify-center py-8 px-4 sm:px-10">
                     <div className="flex justify-center">
                         <div className="h-16 w-16 bg-blue-600 text-white rounded-xl flex items-center justify-center">
                             <Database size={32} />
@@ -78,8 +84,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                     </p>
                 </div>
 
-                <div className="mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-                    <form className="space-y-6" onSubmit={handleSubmit}>
+                <div className=" mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                    <form className=" max-w-xs space-y-6" onSubmit={handleSubmit}>
                         {error && (
                             <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">
                                 <div className="flex">
@@ -107,20 +113,38 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             />
                         </div>
 
-                        <div>
+                        <div className="relative">
                             <Input
                                 label="Password"
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 value={form.password}
                                 onChange={handleLoginData}
                                 required
                                 fullWidth
                                 placeholder="Enter your password"
-                                helpText="(Hint: Use 'root/admin/user/monitor' with password 'password123 for demo.' )"
+                                helpText="(Hint: Use 'root/admin/user/monitor' with password 'password123 for demo.')"
                             />
+
+                            <button
+                                type="button"
+                                onClick={togglePasswordVisibility}
+                                className="absolute right-3 top-11 transform -translate-y-1/2 text-gray-500"
+                                tabIndex={-1}
+                            >
+                                {showPassword ?
+                                    <Eye
+                                        color='#c0b9b9'
+                                        size={16}
+                                    /> :
+                                    <EyeClosed
+                                        color='#c0b9b9'
+                                        size={16}
+                                    />}
+                            </button>
                         </div>
+
 
                         <div className="flex items-center justify-between">
                             <div className="flex items-center">
@@ -155,25 +179,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             {isError && <p style={{ color: 'red' }}>{loginErr?.message}</p>}
                         </div>
                     </form>
-
-                    <div className="mt-6">
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <div className="w-full border-t border-gray-300" />
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-2 bg-white text-gray-500">Demo credentials</span>
-                            </div>
-                        </div>
-
-                        <div className="mt-6 grid grid-cols-2 gap-3">
-                            <div className="bg-gray-50 p-3 rounded-md text-center">
-                                <p className="text-sm font-medium text-gray-900">Root User</p>
-                                <p className="text-xs text-gray-500">Username: root</p>
-                                <p className="text-xs text-gray-500">Password: password123</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
         </div>

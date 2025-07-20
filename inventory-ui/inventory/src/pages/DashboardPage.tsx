@@ -2,17 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { Wallet, Server, HardDrive, Network, AlertTriangle, ArrowUp, ArrowDown, MonitorCheck } from 'lucide-react';
 import Card from '../components/ui/Card';
 import type { Dashboard, RecentActivity } from '../types/responseDto';
+import InventoryOverview from '../components/ui/InventoryOverview';
 import { dashboardAPI } from '../service/inventoryApi/dashboardApi';
 import { activityAPI } from '../service/inventoryApi/activityApi';
-import DataTable from '../components/ui/DataTable';
-// import { useLocationsResourceCount } from '../features/inventoryQuery/locationQuery';
+
+
+interface InventoryDataprops {
+  location: string;
+  rackCount: number;
+  baremetalCount: number;
+  networkDeviceCount: number;
+  slotsCount: number;
+  rackOccupiedPer: number;
+}
 
 const DashboardPage: React.FC = () => {
 
-  console.log('Dashboard page...')
   const [dashboardDetails, setDashboardDetails] = useState<Dashboard | null>(null);
+  const [locationDetails, setLocationDetails] = useState<InventoryDataprops[]>([]);
   const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
-  // const { data: locationResourceCounts } = useLocationsResourceCount();
 
   const fetchDashboardData = async () => {
     try {
@@ -21,6 +29,16 @@ const DashboardPage: React.FC = () => {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
       setDashboardDetails(null);
+    }
+  };
+
+  const fetchLocationDetails = async () => {
+    try {
+      const data = await dashboardAPI.getLocationsDetails();
+      setLocationDetails(data);
+    } catch (error) {
+      console.error('Error fetching location details:', error);
+      setLocationDetails([]);
     }
   };
 
@@ -40,6 +58,7 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     fetchDashboardData();
     fetchRecentActivity();
+    fetchLocationDetails();
   }, []);
 
 
@@ -203,134 +222,7 @@ const DashboardPage: React.FC = () => {
         </Card>
       </div>
 
-
-      {/* <DataTable data={locationResourceCounts ?? []} /> */}
-
-
-
-
-
-      <Card title="Inventory Overview" className="h-full">
-        <div className="flex flex-col">
-          <div className="-my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
-            <div className="py-2 align-middle inline-block min-w-full sm:px-6 lg:px-8">
-              <div className="shadow overflow-hidden border-b border-gray-200 sm:rounded-lg">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Racks
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Servers
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Network Devices
-                      </th>
-                      <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Capacity
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">New York DC</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">16</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">48</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">18</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: "65%" }}></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-600">65%</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">San Francisco DC</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">14</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">42</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">16</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-green-600 h-2.5 rounded-full" style={{ width: "50%" }}></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-600">50%</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">Chicago DC</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">12</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">36</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">14</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-amber-500 h-2.5 rounded-full" style={{ width: "88%" }}></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-600">88%</span>
-                        </div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="font-medium text-gray-900">Dallas DC</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">6</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">18</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-gray-900">5</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div className="bg-blue-600 h-2.5 rounded-full" style={{ width: "35%" }}></div>
-                          </div>
-                          <span className="ml-2 text-sm text-gray-600">35%</span>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        </div>
-      </Card>
+      <InventoryOverview data={locationDetails} />
     </div>
   );
 };

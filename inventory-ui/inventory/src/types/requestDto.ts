@@ -60,24 +60,45 @@ export interface ProjectReqDTO {
 }
 
 export interface RackReqDTO {
-    rackName: string;
+    name: string;
+    totalSlot: number;
     locationId: number;
     usersId?: number[];
 }
 
-export interface BareMetalReqDTO {
-    brandName: string;
-    serverName: string;
-    modelName: string;
-    serialNumber: string;
-    ipAddress: string;
-    operatingSystem: string;
-    rackId: number;
-    rackPosition: string;
-    userIds?: number[];
+export interface InterfacesDTO {
+    ip: string;
+    gateway: string;
+    primaryDns: string;
+    secondaryDns: string;
+    status: string;
 }
 
+export interface BareMetalReqDTO {
+    name: string;
+    type: string;
+    management: string;
+    manufacturer: string;
+    modelName: string;
+    serialNumber: string;
+    interfaces: InterfacesDTO[];
+    rackId: number;
+    rackSlotNumber: number;
+    userIds: number[];
+}
 
+export interface NetworkDevicReqeDTO {
+    name: string;
+    type: string;
+    manufacturer: string;
+    model: string;
+    serialNumber: string;
+    numberOfPort: number;
+    interfaces: InterfacesDTO[];
+    rackId: number;
+    rackSlotNumber: number;
+    userIds: number[];
+}
 
 
 export interface VirtualPlatformReqDTO {
@@ -106,3 +127,25 @@ export interface VirtualMachineReqDTO {
     vpId: number;
     usersId?: number[];
 }
+
+export type HostType =
+    | 'VIRTUAL_SERVER'
+    | 'PHYSICAL_SERVER'
+    | 'VIRTUALIZATION'
+    | 'SWITCH'
+    | 'ROUTER'
+    | 'FIREWALL'
+    | 'ACCESS_POINT'
+
+export type ManagementType =
+    | 'ILO'
+    | 'IDRAC'
+    | 'KVM'
+    | 'IPMI'
+    | 'RMM'
+    | 'CIMC'
+    | 'BMC_GENERIC'
+    | 'OTHER'
+
+
+

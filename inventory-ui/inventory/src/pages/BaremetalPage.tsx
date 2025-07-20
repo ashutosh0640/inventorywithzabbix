@@ -112,11 +112,11 @@ const BaremetalPage: React.FC = () => {
 
     const filteredServers = searchTerm
         ? servers.filter(server =>
-            server.serverName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
             server.modelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            server.brandName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            server.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()) ||
             server.serialNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            server.ipAddress.toLowerCase().includes(searchTerm.toLowerCase())
+            server.interfaces[0].ip.toLowerCase().includes(searchTerm.toLowerCase())
         )
         : servers;
 

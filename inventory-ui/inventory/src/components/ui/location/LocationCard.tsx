@@ -63,7 +63,7 @@ export const LocationCard: React.FC<LocationCardProps> = ({ location, onEdit, on
           <Warehouse  size={14} className="mr-2 text-gray-400" />
           <span className="line-clamp-1">
             {location.rack?.length ?? 0} Rack{location.rack?.length > 1 ? 's' : ''}: {' '}
-            {location.rack?.map(r => r.rackName).join(', ')}
+            {location.rack?.map(r => r.name).join(', ')}
           </span>
         </div>
 

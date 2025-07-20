@@ -1,5 +1,5 @@
 // config/routes.ts
-import type { Route, PublicRoute, AppRoute, InventoryRoute, ZabbixRoute } from '../types/routes';
+import type { PublicRoute, AppRoute, InventoryRoute, ZabbixRoute } from '../types/routes';
 
 export const publicRoutes: Record<PublicRoute, { path: PublicRoute }> = {
   '/login': { path: '/login' },
@@ -13,6 +13,7 @@ export const inventoryRoutes: Record<InventoryRoute, { path: InventoryRoute }> =
   '/inventory/racks': { path: '/inventory/racks' },
   '/inventory/racks/:id': { path: '/inventory/racks/:id' },
   '/inventory/racks/:id/baremetals': { path: '/inventory/racks/:id/baremetals' },
+  '/inventory/racks/:id/networkDevice': { path: '/inventory/racks/:id/networkDevice' },
   '/inventory/baremetals': { path: '/inventory/baremetals' },
   '/inventory/baremetals/:id': { path: '/inventory/baremetals/:id' },
   '/inventory/baremetals/:id/virtualizations': { path: '/inventory/baremetals/:id/virtualizations' },

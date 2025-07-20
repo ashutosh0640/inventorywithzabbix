@@ -1,29 +1,22 @@
 import React from 'react';
 import type { Rack } from '../../../types/responseDto';
-import { Calendar, MapPin, Users, Edit, Trash2, MoreHorizontal, Server, Network } from 'lucide-react';
+import { Calendar, MapPin, Users, Edit, Trash2, Server, Network } from 'lucide-react';
 
 interface RackCardProps {
   rack: Rack;
   onEdit: (rack: Rack) => void;
-  onDelete: (rackId: string) => void;
-  onClick: (rack: Rack) => void;
+  onDelete: (rackId: number) => void;
+  onClick: (rackid: number) => void;
 }
 
 export const RackCard: React.FC<RackCardProps> = ({ rack, onEdit, onDelete, onClick }) => {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
-  };
 
   const utilizationPercentage = Math.round((rack.occupiedSlot / rack.totalSlot) * 100);
 
   return (
     <div 
       className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group cursor-pointer"
-      onClick={() => onClick(rack)}
+      onClick={() => onClick(rack.id)}
     >
       <div className="flex items-start justify-between mb-4">
         <div className="flex-1">
@@ -49,10 +42,10 @@ export const RackCard: React.FC<RackCardProps> = ({ rack, onEdit, onDelete, onCl
         <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={() => onEdit(rack)}
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(rack);
-            }}
+            // onClick={(e) => {
+            //   e.stopPropagation();
+            //   onEdit(rack);
+            // }}
             className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
             title="Edit rack"
           >
@@ -60,21 +53,21 @@ export const RackCard: React.FC<RackCardProps> = ({ rack, onEdit, onDelete, onCl
           </button>
           <button
             onClick={() => onDelete(rack.id)}
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(rack.id);
-            }}
+            // onClick={(e) => {
+            //   e.stopPropagation();
+            //   onDelete(rack.id);
+            // }}
             className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
             title="Delete rack"
           >
             <Trash2 size={16} />
           </button>
-          <button 
+          {/* <button 
             onClick={(e) => e.stopPropagation()}
             className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors"
           >
             <MoreHorizontal size={16} />
-          </button>
+          </button> */}
         </div>
       </div>
 
@@ -83,13 +76,13 @@ export const RackCard: React.FC<RackCardProps> = ({ rack, onEdit, onDelete, onCl
         <div className="grid grid-cols-2 gap-3">
           <div className="flex items-center text-sm text-gray-600 bg-blue-50 rounded-lg p-2">
             <Server size={14} className="mr-2 text-blue-600" />
-            <span className="font-medium">{rack.servers.length}</span>
-            <span className="ml-1">Server{rack.servers.length !== 1 ? 's' : ''}</span>
+            <span className="font-medium">{rack.server?.length}</span>
+            <span className="ml-1">Server{rack.server?.length !== 1 ? 's' : ''}</span>
           </div>
           <div className="flex items-center text-sm text-gray-600 bg-green-50 rounded-lg p-2">
             <Network size={14} className="mr-2 text-green-600" />
-            <span className="font-medium">{rack.networkDevices.length}</span>
-            <span className="ml-1">Device{rack.networkDevices.length !== 1 ? 's' : ''}</span>
+            <span className="font-medium">{rack.networkDevices?.length}</span>
+            <span className="ml-1">Device{rack.networkDevices?.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
 
@@ -113,7 +106,7 @@ export const RackCard: React.FC<RackCardProps> = ({ rack, onEdit, onDelete, onCl
 
         <div className="flex items-center text-sm text-gray-500">
           <Calendar size={14} className="mr-2 text-gray-400" />
-          Created {formatDate(rack.createdAt)}
+          Created {rack.createdAt.split('T')[0]}
         </div>
 
         <div className="flex items-center text-sm text-gray-500">
@@ -122,29 +115,29 @@ export const RackCard: React.FC<RackCardProps> = ({ rack, onEdit, onDelete, onCl
             {rack.location.name}
           </span>
         </div>
-        <div className="text-xs text-gray-400 ml-6">
+        {/* <div className="text-xs text-gray-400 ml-6">
           {rack.location.address}
-        </div>
+        </div> */}
 
         <div className="flex items-center justify-between">
           <div className="flex items-center text-sm text-gray-500">
             <Users size={14} className="mr-2 text-gray-400" />
-            {rack.users.length} assigned user{rack.users.length !== 1 ? 's' : ''}
+            {rack.user?.length} assigned user{rack.user?.length !== 1 ? 's' : ''}
           </div>
           
           <div className="flex -space-x-2">
-            {rack.users.slice(0, 3).map((user, index) => (
+            {rack.user?.slice(0, 3).map((user, index) => (
               <div
                 key={user.id}
                 className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-medium border-2 border-white"
-                title={user.name}
+                title={user.fullName}
               >
-                {user.name.split(' ').map(n => n[0]).join('')}
+                {user.fullName.split(' ').map(n => n[0]).join('')}
               </div>
             ))}
-            {rack.users.length > 3 && (
+            {rack.user?.length > 3 && (
               <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-600 text-xs font-medium border-2 border-white">
-                +{rack.users.length - 3}
+                +{rack.user.length - 3}
               </div>
             )}
           </div>

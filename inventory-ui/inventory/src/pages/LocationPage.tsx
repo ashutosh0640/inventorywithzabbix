@@ -74,7 +74,6 @@ const LocationPage: React.FC = () => {
         showAlertMsg('error', 'Error Deleting Location', 'Failed to delete location.');
       }
     });
-    
   };
 
   const handleAddLocation = () => {

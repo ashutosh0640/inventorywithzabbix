@@ -1,5 +1,6 @@
 import api from '../inventoryapi';
 import type { RackReqDTO } from '../../types/requestDto';
+import type { Rack, Page } from '../../types/responseDto';
 
 
 
@@ -21,30 +22,38 @@ export const racksAPI = {
         const response = await api.get('/api/v1/rack/sorted');
         return response.data;
     },
-    getPaged: async (pageSize: number, pageNumber: number) => {
-        const response = await api.get(`/api/v1/rack/paged?pageSize=${pageSize}&pageNumber=${pageNumber}`);
+    getPaged: async (page: number, size: number): Promise<Page<Rack>> => {
+        const response = await api.get(`/api/v1/rack/paged?page=${page}&size=${size}`);
         return response.data;
     },
     searchByName: async (name: string) => {
         const response = await api.get(`/api/v1/rack/search?name=${name}`);
         return response.data;
     },
-    searchByNamePaged: async (name: string, pageSize: number, pageNumber: number) => {
-        const response = await api.get(`/api/v1/rack/search/by-name/paged?name=${name}&pageSize=${pageSize}&pageNumber=${pageNumber}`);
+    searchByNamePaged: async (name: string, page: number, size: number): Promise<Page<Rack>> => {
+        const response = await api.get(`/api/v1/rack/search/by-name/paged?name=${name}&page=${page}&size=${size}`);
+        return response.data;
+    },
+    getRacksByIdForUser: async (id: number): Promise<Rack> =>{
+        const response = await api.get(`/api/v1/rack/${id}/users`);
         return response.data;
     },
     getRacksForUser: async () => {
         const response = await api.get('/api/v1/rack/users');
         return response.data;
     },
-    getRacksForUserPaged: async (pageSize: number, pageNumber: number) => {
-        const response = await api.get(`/api/v1/rack/users/paged?pageSize=${pageSize}&pageNumber=${pageNumber}`);
+    getRacksByLocationForUser: async (locationId: number): Promise<Rack[]> => {
+        const response = await api.get(`/api/v1/rack/user/location/${locationId}`);
+        return response.data;
+    },
+    getRacksForUserPaged: async (page: number, size: number): Promise<Page<Rack>> => {
+        const response = await api.get(`/api/v1/rack/users/paged?page=${page}&size=${size}`);
         return response.data;
     },
     countByUser: async () => {
         const response = await api.get('/api/v1/rack/count');
         return response.data;
-    } ,
+    },
     create: async (rackData: RackReqDTO) => {
         const response = await api.post('/api/v1/rack', rackData);
         return response.data;

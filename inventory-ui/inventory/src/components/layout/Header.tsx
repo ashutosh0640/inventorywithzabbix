@@ -1,6 +1,7 @@
 import React from 'react';
 import { useAppSelector } from '../../slice/hooks';;
 import { Bell, Search } from 'lucide-react';
+import { ThemeToggle } from '../ui/ThemeToggle';
 
 interface HeaderProps {
   title: string;
@@ -48,6 +49,9 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold">
               {loginDetails?.username.charAt(0).toUpperCase()}
             </div>
+          </div>
+          <div>
+            <ThemeToggle/>
           </div>
         </div>
       </div>

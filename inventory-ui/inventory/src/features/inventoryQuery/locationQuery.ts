@@ -1,6 +1,15 @@
+import {
+    useQuery,
+    useMutation,
+    useQueryClient
+} from '@tanstack/react-query';
+import { locationsAPI } from '../../service/inventoryApi/locationApi';
+import type { Location } from '../../types/responseDto'
+import type { LocationReqDTO } from '../../types/requestDto';
+// import type { Location } from '../../types/responseDto';
 
 
-
+const LOCATIONS = 'Locations' as const;
 
 interface LocationResourceCount {
     locationName: string;
@@ -9,18 +18,6 @@ interface LocationResourceCount {
     virtualMachineCount: number;
     virtualPlatformCount: number;
 }
-
-import {
-    useQuery,
-    useMutation,
-    useQueryClient
-} from '@tanstack/react-query';
-import { locationsAPI } from '../../service/inventoryApi/locationApi';
-import type { LocationReqDTO } from '../../types/requestDto';
-// import type { Location } from '../../types/responseDto';
-
-
-const LOCATIONS = 'Locations' as const;
 
 const queryKeys = {
     base: [LOCATIONS] as const,
@@ -70,7 +67,7 @@ export const useSearchLocations = (
     });
 
 export const useLocationsForUser = () =>
-    useQuery({
+    useQuery<Location[]>({
         queryKey: queryKeys.userList(),
         queryFn: locationsAPI.getLocationsForUser
     });
