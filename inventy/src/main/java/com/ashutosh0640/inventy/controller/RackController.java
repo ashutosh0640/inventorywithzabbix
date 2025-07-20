@@ -174,7 +174,9 @@ public class RackController {
 
     @PreAuthorize("hasPermission(null, 'RACK', 'READ')")
     @GetMapping("/users/paged")
-    public ResponseEntity<Page<RackResponseDTO>> getAllRacksByUserPaged(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<Page<RackResponseDTO>> getAllRacksByUserPaged(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size) {
         LOGGER.info("Received request to get all rack for user in page.");
         Page<RackResponseDTO> dto = rackService.getAllRacksByUserPaginated(page, size);
         return ResponseEntity.ok(dto);
@@ -182,7 +184,10 @@ public class RackController {
 
     @PreAuthorize("hasPermission(null, 'RACK', 'READ')")
     @GetMapping("/search/by-name/paged")
-    public ResponseEntity<Page<RackResponseDTO>> searchRacksByName(@RequestParam String name, @RequestParam int page, int size) {
+    public ResponseEntity<Page<RackResponseDTO>> searchRacksByName(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size) {
         LOGGER.info("Received request for search rack with name: {}", name);
         Page<RackResponseDTO> dto = rackService.searchRacksByName(name, page, size);
         return ResponseEntity.ok(dto);
@@ -215,7 +220,7 @@ public class RackController {
 
 
     @PreAuthorize("hasPermission(null, 'RACK', 'READ')")
-    @GetMapping("/search/by-location/{location_id}")
+    @GetMapping("/user/location/{location_id}")
     public ResponseEntity<List<RackResponseDTO>> findRacksByUserAndLocation(@PathVariable Long location_id) {
         LOGGER.info("Received request to find racks by user and location with ID: {}", location_id);
         List<RackResponseDTO> dto = rackService.findByUserAndLocation(location_id);

@@ -27,12 +27,14 @@ public class ActivityLogController {
     }
 
     @GetMapping("/page")
-    public Page<ActivityLog> getEntityByPage(@RequestParam int page, @RequestParam int size) {
+    public Page<ActivityLog> getEntityByPage(@RequestParam(defaultValue = "0") Integer page,
+                                             @RequestParam(defaultValue = "5") Integer size) {
         return activityLogService.getEntityByPage(page, size);
     }
 
     @GetMapping("/recent")
-    public Page<ActivityLog> getRecentEntityByPage(@RequestParam int page, @RequestParam int size) {
+    public Page<ActivityLog> getRecentEntityByPage(@RequestParam(defaultValue = "0") Integer page,
+                                                   @RequestParam(defaultValue = "5") Integer size) {
         return activityLogService.getRecentEntityByPage(page, size);
     }
 

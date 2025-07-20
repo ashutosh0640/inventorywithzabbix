@@ -21,12 +21,12 @@ public interface RackRepository extends JpaRepository<Racks, Long> {
 
 
     // Get all racks assigned to a user
-    @Query("SELECT r FROM Racks r JOIN r.users u WHERE u.id = :userId")
+    @Query("SELECT r FROM Racks r LEFT JOIN r.users u WHERE u.id = :userId")
     List<Racks> findAllByUser(@Param("userId") Long userId);
 
 
     // Get a single Rack assigned to a user
-    @Query("SELECT r FROM Racks r JOIN r.users u WHERE u.id = :userId AND r.id = :rackId")
+    @Query("SELECT r FROM Racks r LEFT JOIN r.users u WHERE u.id = :userId AND r.id = :rackId")
     Optional<Racks> findByUser(@Param("userId") Long userId, @Param("rackId") Long rackId);
 
 

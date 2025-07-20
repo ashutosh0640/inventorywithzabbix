@@ -165,7 +165,10 @@ public class BareMetalController {
 
     @PreAuthorize("hasPermission(null, 'BAREMETAL', 'READ')")
     @GetMapping("/search/by-name/paged")
-    public ResponseEntity<Page<BareMetalServerResponseDTO>> searchByNamePaged(@RequestParam String name, @RequestParam int page, @RequestParam int size ) {
+    public ResponseEntity<Page<BareMetalServerResponseDTO>> searchByNamePaged(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size ) {
         LOGGER.info("Received request to search bareMetals with name: {}", name);
         try {
             Page<BareMetalServerResponseDTO> bareMetals = bareMetalService.searchByName(name, page, size);
@@ -208,6 +211,12 @@ public class BareMetalController {
     public BareMetalServerResponseDTO getByUsers(@PathVariable Long id) {
         LOGGER.info("Received request to get BareMetalServer by user");
         return bareMetalService.getByUser(id);
+    }
+
+    @GetMapping("/users/ids")
+    public List<BareMetalServerResponseDTO> getBareMetalsForUserByIds(@RequestBody List<Long> ids) {
+        LOGGER.info("Received request to get baremetal by ids");
+        return bareMetalService.getBareMetalsForUserByIds(ids);
     }
 
     @PreAuthorize("hasPermission(#id, 'BAREMETAL', 'READ')")
@@ -292,7 +301,9 @@ public class BareMetalController {
 
     @PreAuthorize("hasPermission(null, 'BAREMETAL', 'READ')")
     @GetMapping("/users/paged")
-    public Page<BareMetalServerResponseDTO> getAllByUsersPaged(@RequestParam int page, @RequestParam int size) {
+    public Page<BareMetalServerResponseDTO> getAllByUsersPaged(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size) {
         LOGGER.info("Received request to get all bareMetalServers by user in page");
         return bareMetalService.getAllByUserPaginated(page, size);
     }

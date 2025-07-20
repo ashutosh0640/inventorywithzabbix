@@ -20,9 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -52,6 +50,10 @@ public class BareMetalService {
     }
 
     public BareMetalServerResponseDTO save(BareMetalServerRequestDTO dto) {
+        Boolean isSlot = rackSlotService.isRackSlotEmpty(dto.getRackId(), dto.getRackSlotNumber());
+        if (!isSlot) {
+            throw new RuntimeException("Slot number: "+dto.getRackSlotNumber()+" is not empty of rack id: "+ dto.getRackId());
+        }
         try {
             LOGGER.info("Fetching bare metal server rack with ID: {}", dto.getRackId());
             Racks rack = rackRepository.getReferenceById(dto.getRackId());
@@ -372,12 +374,19 @@ public class BareMetalService {
             BareMetalServers server = bareMetalRepository.findByUser(userId, baremetal_id)
                     .orElseThrow(() -> new ResourceNotFoundException("BareMetalServer not found for userId " + userId));
 
-            return BareMetalMapper.toDTO(server);
+            return BareMetalMapper.toDTO(server, server.getInterfaces(), server.getVirtualizations(), server.getUsers());
 
         } catch (Exception ex) {
             LOGGER.error("Found error while fetching server: ", ex);
             throw new RuntimeException("Found error while fetching server. Reason: " + ex.getMessage());
         }
+    }
+
+    public List<BareMetalServerResponseDTO> getBareMetalsForUserByIds(List<Long> baremetalIds) {
+        if (baremetalIds == null || baremetalIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return baremetalIds.stream().map(this::getByUser).toList();
     }
 
     public List<BareMetalServerResponseDTO> getByIpAndUser(String ip, Long userId) {
@@ -470,7 +479,7 @@ public class BareMetalService {
 
             if (list.isEmpty()) {
                 LOGGER.warn("No bareMetals found in rack with  rack id: {}", rackId);
-                throw new ResourceNotFoundException("No bareMetals found in rack with rack id: " + rackId);
+                return new ArrayList<>();
             }
 
             return list.stream()

@@ -171,7 +171,9 @@ public class LocationController {
 
     @PreAuthorize("hasPermission(null, 'LOCATION', 'READ')")
     @GetMapping("/users/paged")
-    public ResponseEntity<Page<LocationResponseDTO>> getAllLocationsByUserPaged(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<Page<LocationResponseDTO>> getAllLocationsByUserPaged(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size) {
         LOGGER.info("Received request to fetch all location by user in page.");
         Page<LocationResponseDTO> dtos = locationService.getAllLocationsByUserPaged(page, size);
         return ResponseEntity.ok(dtos);
@@ -180,7 +182,10 @@ public class LocationController {
 
     @PreAuthorize("hasPermission(null, 'LOCATION', 'READ')")
     @GetMapping("/search/paged")
-    public ResponseEntity<Page<LocationResponseDTO>> searchLocationsByName(@RequestParam String name, @RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<Page<LocationResponseDTO>> searchLocationsByName(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size) {
         LOGGER.info("Received request to search locations with name: {} in page.", name);
         Page<LocationResponseDTO> dtos = locationService.searchLocationsByName(name, page, size);
         return ResponseEntity.ok(dtos);

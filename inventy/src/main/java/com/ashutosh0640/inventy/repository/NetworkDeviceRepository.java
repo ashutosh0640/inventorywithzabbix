@@ -35,6 +35,6 @@ public interface NetworkDeviceRepository extends JpaRepository<NetworkDevices, L
     Page<NetworkDevices> geAllByUserPageable(@Param("userId") Long userId, Pageable pageable);
 
     @Query("SELECT n FROM NetworkDevices n "+
-            "JOIN n.users u WHERE n.rack.id = : id AND u.id = :userId")
+            "JOIN n.users u WHERE n.rack.id = :id AND u.id = :userId")
     List<NetworkDevices> getByRackAndUser(@Param("id") Long id, @Param("userId") Long userId);
 }

@@ -18,7 +18,7 @@ public class RackResponseDTO {
     private Long id;
     private String name;
     private Short totalSlot;
-    private Short occupiedSlot;
+    private Long occupiedSlot;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocationResponseDTO location;

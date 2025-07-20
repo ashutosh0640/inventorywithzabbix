@@ -48,14 +48,18 @@ public class RackMapper {
 
 
 
-    public static RackResponseDTO toDTO(Racks rack, Set<BareMetalServers> server, Set<NetworkDevices> devices, Set<User> user) {
+    public static RackResponseDTO toDTO(Racks rack, Long occupied, Set<BareMetalServers> server, Set<NetworkDevices> devices, Set<User> user) {
         RackResponseDTO dto = toDTO(rack);
+
+        dto.setOccupiedSlot(occupied);
 
         if (server != null && !server.isEmpty()) {
             Set<BareMetalServerResponseDTO> serversDto = server.stream()
                     .map(BareMetalMapper::toDTO)
                     .collect(Collectors.toSet());
             dto.setServer(serversDto);
+        } else {
+            dto.setServer(new HashSet<>());
         }
 
         if (devices != null && !devices.isEmpty()) {
@@ -63,6 +67,8 @@ public class RackMapper {
                     .map(NetworkDeviceMapper::toDTO)
                     .collect(Collectors.toSet());
             dto.setNetworkDevices(networkDto);
+        } else {
+            dto.setNetworkDevices(new HashSet<>());
         }
 
         if (user != null &&  !user.isEmpty()) {
@@ -70,6 +76,8 @@ public class RackMapper {
                     .map(UserMapper::toDTO)
                     .collect(Collectors.toSet());
             dto.setUser(userDto);
+        } else {
+            dto.setUser(new HashSet<>());
         }
 
         return dto;

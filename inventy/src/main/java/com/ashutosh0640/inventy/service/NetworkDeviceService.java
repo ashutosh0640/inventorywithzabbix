@@ -11,7 +11,6 @@ import com.ashutosh0640.inventy.enums.HostType;
 import com.ashutosh0640.inventy.exception.ResourceNotFoundException;
 import com.ashutosh0640.inventy.mapper.InterfaceMapper;
 import com.ashutosh0640.inventy.mapper.NetworkDeviceMapper;
-import com.ashutosh0640.inventy.repository.InterfaceRepository;
 import com.ashutosh0640.inventy.repository.NetworkDeviceRepository;
 import com.ashutosh0640.inventy.repository.RackRepository;
 import com.ashutosh0640.inventy.repository.UserRepository;
@@ -73,7 +72,12 @@ public class NetworkDeviceService {
         try {
             Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
             List<NetworkDevices> entity = networkDeviceRepository.getByNameOrIpAndUser(name, ip,  userId);
-            return entity.stream().map(NetworkDeviceMapper::toDTO).toList();
+            if (entity.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return entity.stream().map(e->{
+                return NetworkDeviceMapper.toDTO(e, e.getInterfaces(), e.getUsers());
+            }).toList();
         } catch (Exception e) {
             LOGGER.error("Found exception while fetch items by name or ip: {}", name);
             throw new RuntimeException("Found exception while fetch items by name or ip: "+ name+" Message: "+e.getMessage());
@@ -88,7 +92,12 @@ public class NetworkDeviceService {
         try {
             Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
             List<NetworkDevices> entity = networkDeviceRepository.getByRackAndUser(rackId,  userId);
-            return entity.stream().map(NetworkDeviceMapper::toDTO).toList();
+            if (entity.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return entity.stream().map(e->{
+                return NetworkDeviceMapper.toDTO(e, e.getInterfaces(), e.getUsers());
+            }).toList();
         } catch (Exception e) {
             LOGGER.error("Found exception while fetch items by rack id. ID: {}", rackId);
             throw new RuntimeException("Found exception while fetch items by rack id. ID: {}"+ rackId+" Message: "+e.getMessage());
@@ -131,12 +140,21 @@ public class NetworkDeviceService {
         }
     }
 
+    public List<NetworkDeviceResponseDTO> getByIdsAndUser(List<Long> ids) {
+        return ids.stream().map(this::getByIdAndUser).toList();
+    }
+
 
     public List<NetworkDeviceResponseDTO> getAllAndUser() {
         try {
             Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
             List<NetworkDevices> entity = networkDeviceRepository.getAllByUser(userId);
-            return entity.stream().map(NetworkDeviceMapper::toDTO).toList();
+            if (entity.isEmpty()) {
+                return new ArrayList<>();
+            }
+            return entity.stream().map(e->{
+                return NetworkDeviceMapper.toDTO(e, e.getInterfaces(), e.getUsers());
+            }).toList();
         } catch (Exception e) {
             LOGGER.warn("Found exception while fetching items.");
             throw new RuntimeException("Found exception while fetching items.");

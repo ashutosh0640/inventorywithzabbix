@@ -49,13 +49,11 @@ public class RackService {
             Location location = locationRepository.findById(dto.getLocationId())
                     .orElseThrow(() -> new ResourceNotFoundException("Rack's location not found with ID: " + dto.getLocationId()));
 
-            Set<User> users = new HashSet<>();
-            if (!dto.getUsersId().isEmpty()) {
-                users = dto.getUsersId().stream()
-                        .map(id-> userRepository.findById(id)
-                                    .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + id))
-                        )
-                        .collect(Collectors.toSet());
+            Set<User> users;
+            if (dto.getUsersId() == null || dto.getUsersId().isEmpty()) {
+                users = location.getUsers();
+            } else {
+                users = new HashSet<>(userRepository.findAllById(dto.getUsersId()));
             }
 
             Racks rack = rackRepository.save(RackMapper.toEntity(dto, location, users));
@@ -75,7 +73,12 @@ public class RackService {
             );
 
             LOGGER.info("Saving rack: {}", rack);
-            return RackMapper.toDTO(rack, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
+
+            Long occupied = rack.getSlots().stream().filter(s->{
+                return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+            }).count();
+
+            return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
         } catch (Exception ex) {
             LOGGER.error("Error saving rack: ", ex);
             throw new RuntimeException("Failed to save rack. Reason: " + ex.getMessage());
@@ -129,7 +132,11 @@ public class RackService {
             Racks rack = rackRepository.findById(id)
                     .orElseThrow(() -> new ResourceNotFoundException("Rack not found with ID: " + id));
 
-            return RackMapper.toDTO(rack, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
+            Long occupied = rack.getSlots().stream().filter(s->{
+                return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+            }).count();
+
+            return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
 
         } catch (Exception ex) {
             LOGGER.error("Error fetching rack with ID {}: ", id, ex);
@@ -144,8 +151,12 @@ public class RackService {
             List<Racks> racks = rackRepository.findByNameContainingIgnoreCase(name);
 
             return racks.stream()
-                    .map(r-> RackMapper.toDTO(r, r.getServers(), r.getNetworkDevices(), r.getUsers()))
-                    .collect(Collectors.toList());
+                    .map(r-> {
+                        Long occupied = r.getSlots().stream().filter(s->{
+                            return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+                        }).count();
+                        return RackMapper.toDTO(r, occupied, r.getServers(), r.getNetworkDevices(), r.getUsers());
+                    }).toList();
 
         } catch (Exception ex) {
             LOGGER.error("Error searching racks by name {}: ", name, ex);
@@ -161,8 +172,12 @@ public class RackService {
             List<Racks> racks = rackRepository.findAll();
 
             return racks.stream()
-                    .map(r-> RackMapper.toDTO(r, r.getServers(), r.getNetworkDevices(), r.getUsers()))
-                    .collect(Collectors.toList());
+                    .map(r-> {
+                        Long occupied = r.getSlots().stream().filter(s->{
+                            return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+                        }).count();
+                        return RackMapper.toDTO(r, occupied, r.getServers(), r.getNetworkDevices(), r.getUsers());
+                    }).toList();
         } catch (Exception ex) {
             LOGGER.error("Error fetching racks: ", ex);
             throw new RuntimeException("Failed to retrieve racks. Reason: " + ex.getMessage());
@@ -189,8 +204,12 @@ public class RackService {
             List<Racks> racks = rackRepository.findAll(sort);
 
             return racks.stream()
-                    .map(r-> RackMapper.toDTO(r, r.getServers(), r.getNetworkDevices(), r.getUsers()))
-                    .collect(Collectors.toList());
+                    .map(r-> {
+                        Long occupied = r.getSlots().stream().filter(s->{
+                            return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+                        }).count();
+                        return RackMapper.toDTO(r, occupied, r.getServers(), r.getNetworkDevices(), r.getUsers());
+                    }).toList();
 
         } catch (Exception ex) {
             LOGGER.error("Error fetching sorted racks: ", ex);
@@ -243,7 +262,11 @@ public class RackService {
                     "Rack is updated. ID: "+rack.getId()
             );
 
-            return RackMapper.toDTO(rack, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
+            Long occupied = rack.getSlots().stream().filter(s->{
+                return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+            }).count();
+
+            return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
 
         } catch (Exception ex) {
             LOGGER.error("Error updating rack with ID {}: ", id, ex);
@@ -288,7 +311,11 @@ public class RackService {
             );
 
             LOGGER.info("Successfully updated location to rack with ID: {}", rackId);
-            return RackMapper.toDTO(rack, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
+            Long occupied = rack.getSlots().stream().filter(s->{
+                return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+            }).count();
+
+            return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
         } catch (Exception ex) {
             LOGGER.error("Error while updating location of racks id {}: ", rackId, ex);
             throw new RuntimeException("Failed to search racks. Reason: " + ex.getMessage());
@@ -355,8 +382,12 @@ public class RackService {
             LOGGER.info("Fetching all racks for userId: {}", userId);
             List<Racks> racks = rackRepository.findAllByUser(userId);
             return racks.stream()
-                    .map(r-> RackMapper.toDTO(r, r.getServers(), r.getNetworkDevices(), r.getUsers()))
-                    .collect(Collectors.toList());
+                    .map(r-> {
+                        Long occupied = r.getSlots().stream().filter(s->{
+                            return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+                        }).count();
+                        return RackMapper.toDTO(r, occupied, r.getServers(), r.getNetworkDevices(), r.getUsers());
+                    }).toList();
         } catch (Exception ex) {
             LOGGER.error("Found error while fetching racks for userId {}: ", userId, ex);
             throw new RuntimeException("Found error while fetching rack. Reason: " + ex.getMessage());
@@ -370,7 +401,11 @@ public class RackService {
             Racks rack  = rackRepository.findByUser(userId, rackId)
                     .orElseThrow(() -> new ResourceNotFoundException("Rack not found for userId " + userId));
 
-            return RackMapper.toDTO(rack, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
+            Long occupied = rack.getSlots().stream().filter(s->{
+                return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+            }).count();
+
+            return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
 
         } catch (Exception ex) {
             LOGGER.error("Found error while fetching rack  for userId {}: ", userId, ex);
@@ -420,22 +455,30 @@ public class RackService {
             // Save updated rack
             Racks rack = rackRepository.save(existingRack);
 
-            return RackMapper.toDTO(rack, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
+            Long occupied = rack.getSlots().stream().filter(s->{
+                return "OCCUPIED".equalsIgnoreCase(s.getStatus().toString());
+            }).count();
+
+            return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
         } catch (Exception ex) {
             LOGGER.error("Found error while deleting rack  for userId {}: ", userId, ex);
             throw new RuntimeException("Found error while deleting rack . Reason: " + ex.getMessage());
         }
     }
 
-    public Page<RackResponseDTO> getAllRacksByUserPaginated(int pageSize, int pageNumber) {
+    public Page<RackResponseDTO> getAllRacksByUserPaginated(int page, int size) {
         final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
         try {
             LOGGER.info("Fetching paginated racks for userId: {}", userId);
             // Default to page size 10 if not provided
-            int effectivePageSize = (pageSize <= 0) ? 10 : pageSize;
-            int effectivePageNumber = Math.max(pageNumber, 0);
+            if (page<0) {
+                page = 0;
+            }
+            if (size<1) {
+                size = 5;
+            }
 
-            Pageable pageable = PageRequest.of(effectivePageNumber, effectivePageSize);
+            Pageable pageable = PageRequest.of(page, size);
             Page<Racks> rackPage = rackRepository.findAllByUserPaginated(userId, pageable);
 
             return rackPage.map(RackMapper::toDTO);
@@ -459,7 +502,7 @@ public class RackService {
 
             Page<Racks> rackPage = rackRepository.searchByNameAndUser(name, userId, pageable);
 
-            return rackPage.map(r-> RackMapper.toDTO(r, r.getServers(), r.getNetworkDevices(), r.getUsers()));
+            return rackPage.map(RackMapper::toDTO);
 
         } catch (Exception ex) {
             LOGGER.error("Error fetching paginated racks for user with user id: {} ", userId, ex);

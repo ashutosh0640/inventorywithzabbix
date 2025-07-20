@@ -117,7 +117,7 @@ public class UserController {
     @GetMapping("/paged")
     public ResponseEntity<Page<UserResponseDTO>> getAllUserPageable(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size) {
+            @RequestParam(defaultValue = "5") int size) {
         try {
             LOGGER.info("Received request to fetch users - Page: {}, Size: {}", page, size);
             Page<UserResponseDTO> pagedUsers = userService.getAllUserPageable(page, size);

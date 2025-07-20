@@ -10,6 +10,7 @@ import com.ashutosh0640.inventy.entity.Racks;
 import com.ashutosh0640.inventy.entity.User;
 import com.ashutosh0640.inventy.enums.HostType;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -60,12 +61,21 @@ public class NetworkDeviceMapper {
 
     public static NetworkDeviceResponseDTO toDTO(NetworkDevices entity, Set<Interfaces> interf, Set<User> users) {
         NetworkDeviceResponseDTO dto = toDTO(entity);
-        Set<InterfaceDTO> interfaceDTOS = interf.stream()
-                .map(InterfaceMapper::toDTO).collect(Collectors.toSet());
-        dto.setInterfaces(interfaceDTOS);
 
-        Set<UserResponseDTO> userDTOS = users.stream().map(UserMapper::toDTO).collect(Collectors.toSet());
-        dto.setUsers(userDTOS);
+        if ( interf != null ) {
+            Set<InterfaceDTO> interfaceDTOS = interf.stream()
+                    .map(InterfaceMapper::toDTO).collect(Collectors.toSet());
+            dto.setInterfaces(interfaceDTOS);
+        } else {
+            dto.setInterfaces(new HashSet<>());
+        }
+
+        if (users != null) {
+            Set<UserResponseDTO> userDTOS = users.stream().map(UserMapper::toDTO).collect(Collectors.toSet());
+            dto.setUsers(userDTOS);
+        } else {
+            dto.setUsers(new HashSet<>());
+        }
         return dto;
     }
 

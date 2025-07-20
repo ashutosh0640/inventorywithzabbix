@@ -91,6 +91,20 @@ public interface LocationRepository extends JpaRepository<Location, Long> {
     @Query("SELECT l.name, COUNT(DISTINCT r.id), COUNT(DISTINCT s.id), COUNT(DISTINCT vp.id), COUNT(DISTINCT vm.id) FROM Location l LEFT JOIN l.racks r LEFT JOIN r.servers s LEFT JOIN s.virtualizations vp LEFT JOIN vp.virtualMachines vm  GROUP BY l.id")
     List<Object[]> getCountsPerLocation();
 
+    @Query(value = "SELECT " +
+            "l.name AS location, " +
+            "COUNT(DISTINCT r.id) AS rack_count, " +
+            "COUNT(DISTINCT b.id) AS server_count, " +
+            "COUNT(DISTINCT n.id) AS device_count, " +
+            "COUNT(DISTINCT s.id) AS slots_count, " +
+            "(COUNT(DISTINCT CASE WHEN s.status = 'OCCUPIED' THEN s.id END) * 100.0 / NULLIF(COUNT(DISTINCT s.id), 0)) AS occupied_percentage " +
+            "FROM locations l " +
+            "LEFT JOIN racks r ON r.location_id = l.id " +
+            "LEFT JOIN baremetals b ON r.id = b.rack_id " +
+            "LEFT JOIN network_devices n ON r.id = n.rack_id " +
+            "LEFT JOIN rack_slots s ON r.id = s.rack_id " +
+            "GROUP BY l.name", nativeQuery = true)
+    List<Object[]> getLocationDetails();
 
 
 }

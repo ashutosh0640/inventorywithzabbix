@@ -52,16 +52,22 @@ public class BareMetalMapper {
                     .map(VirtualizationsMapper::toDTO)
                     .collect(Collectors.toSet());
             b.setVp(vpDto);
+        } else {
+            b.setVp(new HashSet<>());
         }
         if (interfaces != null && !interfaces.isEmpty()) {
             Set<InterfaceDTO> intfDto = interfaces.stream().map(InterfaceMapper::toDTO).collect(Collectors.toSet());
             b.setInterfaces(intfDto);
+        } else {
+            b.setInterfaces(new HashSet<>());
         }
         if (user != null && !user.isEmpty()) {
             Set<UserResponseDTO> userDto = user.stream()
                     .map(UserMapper::toDTO)
                     .collect(Collectors.toSet());
             b.setUser(userDto);
+        } else {
+            b.setUser(new HashSet<>());
         }
         return b;
     }

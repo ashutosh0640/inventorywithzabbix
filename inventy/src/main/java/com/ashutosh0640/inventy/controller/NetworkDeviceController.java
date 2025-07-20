@@ -61,6 +61,11 @@ public class NetworkDeviceController {
         return ResponseEntity.ok(response);
     }
 
+    @GetMapping("/users/ids")
+    public ResponseEntity<List<NetworkDeviceResponseDTO>> getByIdsAndUser(@RequestBody List<Long> ids) {
+        return ResponseEntity.ok(networkDeviceService.getByIdsAndUser(ids));
+    }
+
     @GetMapping("/user")
     public ResponseEntity<List<NetworkDeviceResponseDTO>> getAllAndUser() {
         List<NetworkDeviceResponseDTO> response = networkDeviceService.getAllAndUser();

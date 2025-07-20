@@ -164,7 +164,9 @@ public class VirtualMachineController {
 
     @PreAuthorize("hasPermission(null, 'VM', 'READ')")
     @GetMapping("/users/paged")
-    public ResponseEntity<Page<VirtualMachineResponseDTO>> getAllVirtualMachinesByUserPaged(@RequestParam int page, @RequestParam int size) {
+    public ResponseEntity<Page<VirtualMachineResponseDTO>> getAllVirtualMachinesByUserPaged(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         LOGGER.info("Received request to get all virtual machines in page.");
         Page<VirtualMachineResponseDTO> vm = virtualMachineService.findAllByUserPaginated(page, size);
         return ResponseEntity.ok(vm);

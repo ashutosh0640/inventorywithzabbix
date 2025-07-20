@@ -184,7 +184,9 @@ public class VirtualizationsController {
 
     @PreAuthorize("hasPermission(null, 'VP', 'READ')")
     @GetMapping("/users/paged")
-    public ResponseEntity<Page<VirtualizationsResponseDTO>> getAllByUserPaged(int page, int size) {
+    public ResponseEntity<Page<VirtualizationsResponseDTO>> getAllByUserPaged(
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         LOGGER.info("Received request to get all virtual platforms by user in page.");
         Page<VirtualizationsResponseDTO> dto = virtualizationService.getAllByUserPaginated(page, size);
         return ResponseEntity.ok(dto);
@@ -192,7 +194,10 @@ public class VirtualizationsController {
 
     @PreAuthorize("hasPermission(null, 'VP', 'READ')")
     @GetMapping("/search/paged")
-    public ResponseEntity<Page<VirtualizationsResponseDTO>> searchByNameAndUserPaginated(String name, int page, int size) {
+    public ResponseEntity<Page<VirtualizationsResponseDTO>> searchByNameAndUserPaginated(
+            @RequestParam String name,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "10") Integer size) {
         LOGGER.info("Received request to get all virtual platform in page assign to user.");
         Page<VirtualizationsResponseDTO> dto = virtualizationService.searchByNameAndUserPaginated(name, page, size);
         return ResponseEntity.ok(dto);

@@ -115,8 +115,8 @@ public class ProjectController {
     @GetMapping("/search")
     public ResponseEntity<Page<ProjectResponseDTO>> searchProjectByName(
             @RequestParam String name,
-            @RequestParam Integer page,
-            @RequestParam Integer size) {
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "5") Integer size) {
         LOGGER.info("Received request to search projects with name: {}", name);
         Page<ProjectResponseDTO> projects = projectService.searchProjectsByName(name, page, size);
         return ResponseEntity.ok(projects);

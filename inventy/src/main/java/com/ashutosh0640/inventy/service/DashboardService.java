@@ -1,7 +1,10 @@
 package com.ashutosh0640.inventy.service;
 
 import com.ashutosh0640.inventy.dto.DashboardDTO;
+import com.ashutosh0640.inventy.dto.LocationDetailsDTO;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 public class DashboardService {
@@ -44,5 +47,9 @@ public class DashboardService {
         dto.setVmCount(virtualMachineService.count());
         dto.setVmOnlineCount(hostService.countHost("VIRTUAL_SERVER", "ONLINE"));
         return dto;
+    }
+
+    public List<LocationDetailsDTO> locationDetails() {
+        return locationService.getLocationDetails();
     }
 }

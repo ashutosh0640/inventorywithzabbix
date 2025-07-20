@@ -1,5 +1,6 @@
 package com.ashutosh0640.inventy.service;
 
+import com.ashutosh0640.inventy.dto.LocationDetailsDTO;
 import com.ashutosh0640.inventy.dto.LocationRequestDTO;
 import com.ashutosh0640.inventy.dto.LocationResponseDTO;
 import com.ashutosh0640.inventy.entity.Location;
@@ -18,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -436,11 +438,27 @@ public class LocationService {
             data.put("bareMetalCount", row[2]);
             data.put("virtualPlatformCount", row[3]);
             data.put("virtualMachineCount", row[4]);
-
             locationCounts.add(data);
         }
 
         return locationCounts;
+    }
+
+    public List<LocationDetailsDTO> getLocationDetails() {
+        List<Object[]> results = locationRepository.getLocationDetails();
+        List<LocationDetailsDTO> dtoList = results.stream()
+                .map(record -> new LocationDetailsDTO(
+                        (String) record[0],                  // location
+                        ((Number) record[1]).longValue(),   // rackCount
+                        ((Number) record[2]).longValue(),   // serverCount
+                        ((Number) record[3]).longValue(),   // deviceCount
+                        ((Number) record[4]).longValue(),   // slotsCount
+                        (BigDecimal) record[5]                   // occupiedPercentage
+                ))
+                .toList();
+
+        return dtoList;
+
     }
 
 
