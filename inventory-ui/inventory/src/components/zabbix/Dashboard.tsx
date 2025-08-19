@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Server, Monitor, AlertTriangle, CheckCircle, Clock, Users } from 'lucide-react';
+import { Server, Monitor, AlertTriangle, Clock, Users } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../../slice/hooks';
 import { useZabbixServerCount, useOnlineZabbixServerCount } from '../../features/zabbixQuery/zabbixServerQuery';
-// import { apiService } from '../../services/api';
 
 interface DashboardStats {
   totalServers: number;

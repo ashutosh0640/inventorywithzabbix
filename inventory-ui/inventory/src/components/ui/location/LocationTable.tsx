@@ -1,25 +1,33 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import type { Location } from '../../../types/responseDto';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModel';
-import { Edit, Trash2 } from 'lucide-react';
+import { Edit, Trash2, Plus, RectangleGoggles } from 'lucide-react';
 
 interface LocationTableProps {
   locations: Location[];
   onEdit: (location: Location) => void;
   onDelete: (locationId: number) => void;
+  addRack: (location: Location) => void;
 }
 
 
 
-export const LocationTable: React.FC<LocationTableProps> = ({ locations, onEdit, onDelete }) => {
+export const LocationTable: React.FC<LocationTableProps> = ({ locations, onEdit, onDelete, addRack }) => {
+
+  const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
+  const locationEditPermission = loginDetails?.role.includes('LOCATION_EDIT_LOCATION') || false;
+  const locationDeletePermission = loginDetails?.role.includes('LOCATION_DELETE_LOCATION') || false;
+  const rackAddPermission = loginDetails?.role.includes('RACK_WRITE_RACK') || false;
+  const locationViewPermission = !loginDetails?.role.includes('LOCATION_WRITE_LOCATION') && !loginDetails?.role.includes('LOCATION_EDIT_LOCATION') && !loginDetails?.role.includes('LOCATION_DELETE_LOCATION') || false;
+  
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [locationToDelete, setLocationToDelete] = useState<number | null>(null);
 
- const openModal = (locationId: number) => {
+  const openModal = (locationId: number) => {
     setLocationToDelete(locationId);
     setIsModalOpen(true);
-  };
+  }
 
   const handleModelClose = () => {
     setIsModalOpen(false);
@@ -54,7 +62,7 @@ export const LocationTable: React.FC<LocationTableProps> = ({ locations, onEdit,
               <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Team
               </th>
-              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -117,21 +125,37 @@ export const LocationTable: React.FC<LocationTableProps> = ({ locations, onEdit,
                   </div>
                 </td>
                 <td>
-                  <div className="flex items-center justify-start space-x-1">
+                  <div className="flex items-left justify-center space-x-1">
+                    {locationEditPermission && (
                     <button
                       onClick={() => onEdit(location)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                       title="Edit project"
                     >
                       <Edit size={16} />
-                    </button>
+                    </button>)}
+                    {locationDeletePermission && (
                     <button
                       onClick={() => openModal(location.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete project"
                     >
                       <Trash2 size={16} />
-                    </button>
+                    </button>)}
+
+                    {rackAddPermission && (
+                    <button
+                      onClick={() => addRack(location)}
+                      className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                      title={`Add Rack`}
+                    >
+                      <Plus size={16} />
+                    </button>)}
+
+                    {locationViewPermission && (
+                      //<RectangleGoggles className=' ' />
+                      <p className=' text-gray-500 text-xs'>View only</p>
+                      )}
                   </div>
                 </td>
               </tr>

@@ -1,28 +1,34 @@
 import api from '../inventoryapi';
-import type { ZabbixServerRequestDTO, ZabbixServerResponseDTO } from '../../types/zabbix';
+import type { ZabbixServerReqDTO, ZabbixServerResDTO } from '../../types/zabbix';
+
 
 
 export const zabbixServerAPI = {
-  save: async (dto: ZabbixServerRequestDTO): Promise<ZabbixServerResponseDTO> => {
+  save: async (dto: ZabbixServerReqDTO): Promise<ZabbixServerResDTO> => {
     const response = await api.post('/api/v1/zabbix/server', dto);
     return response.data;
   },
 
-  saveAll: async (dtos: Set<ZabbixServerRequestDTO>): Promise<void> => {
+  saveAll: async (dtos: Set<ZabbixServerReqDTO>): Promise<void> => {
     await api.post('/api/v1/zabbix/server/save', Array.from(dtos));
   },
 
-  getById: async (id: number): Promise<ZabbixServerResponseDTO> => {
+  getById: async (id: number): Promise<ZabbixServerResDTO> => {
     const response = await api.get(`/api/v1/zabbix/server/id`, {
       params: { id },
     });
     return response.data;
   },
 
-  getByName: async (name: string): Promise<ZabbixServerResponseDTO> => {
+  getByName: async (name: string): Promise<ZabbixServerResDTO> => {
     const response = await api.get(`/api/v1/zabbix/server/name`, {
       params: { name },
     });
+    return response.data;
+  },
+
+  getAllByUser: async (): Promise<ZabbixServerResDTO[]> => {
+    const response = await api.get(`/api/v1/zabbix/server/user`);
     return response.data;
   },
 
@@ -38,26 +44,24 @@ export const zabbixServerAPI = {
   },
 
 
-
-
-  findByUserId: async (): Promise<ZabbixServerResponseDTO[]> => {
+  findByProjectAndUser: async (): Promise<ZabbixServerResDTO[]> => {
     const response = await api.get(`/api/v1/zabbix/server/project`);
     return response.data;
   },
 
-  findByProjectIdAndUserId: async (projectId: number): Promise<ZabbixServerResponseDTO> => {
+  findByProjectIdAndUserId: async (projectId: number): Promise<ZabbixServerResDTO> => {
     const response = await api.get(`/api/v1/zabbix/server/project`, {
       params: { projectId },
     });
     return response.data;
   },
 
-  getAll: async (): Promise<Set<ZabbixServerResponseDTO>> => {
+  getAll: async (): Promise<Set<ZabbixServerResDTO>> => {
     const response = await api.get(`/api/v1/zabbix/server`);
     return response.data;
   },
 
-  update: async (id: number, dto: ZabbixServerRequestDTO): Promise<ZabbixServerResponseDTO> => {
+  update: async (id: number, dto: ZabbixServerReqDTO): Promise<ZabbixServerResDTO> => {
     const response = await api.put(`/api/v1/zabbix/server`, dto, {
       params: { id },
     });
@@ -65,9 +69,7 @@ export const zabbixServerAPI = {
   },
 
   deleteById: async (id: number): Promise<void> => {
-    await api.delete(`/api/v1/zabbix/server/id`, {
-      params: { id },
-    });
+    await api.delete(`/api/v1/zabbix/server/${id}`);
   },
 
   deleteAll: async (): Promise<void> => {

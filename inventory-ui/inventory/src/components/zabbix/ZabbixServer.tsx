@@ -1,13 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Server, Plus, Search, Filter, MoreVertical, CheckCircle, AlertCircle, 
-  XCircle, Clock, AlertTriangle, Edit, Trash, Copy, Settings, Eye, EyeOff,
-  X, Save, Upload, Download, Share, Tag, Monitor, Users, Key, Globe,
-  TestTube, RefreshCw, Wifi, WifiOff, Activity, Database, Shield
+  Server, Plus, Search, Filter, CheckCircle, AlertCircle, 
+  XCircle, Clock, AlertTriangle, Edit, Trash, Settings, Eye, EyeOff,
+  X, Save, Globe,
+  TestTube, RefreshCw, Wifi, WifiOff, Database
 } from 'lucide-react';
-import { useApp } from '../../contexts/AppContext';
-import { ZabbixServer } from '../../types';
-import { apiService } from '../../services/api';
+
 
 interface ZabbixServerFormData {
   name: string;

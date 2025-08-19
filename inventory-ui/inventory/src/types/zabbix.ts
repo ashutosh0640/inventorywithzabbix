@@ -1,23 +1,21 @@
 import type {Project} from './responseDto'
 
 
-export interface ZabbixServerRequestDTO {
+export interface ZabbixServerReqDTO {
   name: string;
   url: string;
   username: string;
   password: string;
-  apiToken: string;
+  token: string;
   projectId: number;
-
 }
 
-export interface ZabbixServerResponseDTO {
+export interface ZabbixServerResDTO {
   id: number;
   name: string;
   url: string;
-  createdAt: string;
-  updatedAt: string;
-  status: 'online' | 'offline';
+  username: string;
+  status: string;
   project: Project;
 }
 

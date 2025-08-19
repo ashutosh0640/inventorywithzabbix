@@ -4,7 +4,6 @@ import {
   XCircle, Clock, AlertCircle, Eye, MessageSquare, User, Calendar,
   Download, Settings, ChevronDown, ChevronUp
 } from 'lucide-react';
-import { useApp } from '../../contexts/AppContext';
 import { Event } from '../../types';
 import { apiService } from '../../services/api';
 

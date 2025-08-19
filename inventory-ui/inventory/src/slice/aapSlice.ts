@@ -1,18 +1,18 @@
 import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction as PayLoadAction } from '@reduxjs/toolkit';
 import type { Project } from '../types/responseDto';
-import type { ZabbixServerResponseDTO } from '../types/zabbix';
+import type { ZabbixServerResDTO } from '../types/zabbix';
 import { useZabbixServerByProjectIdAndUser } from '../features/zabbixQuery/zabbixServerQuery';
 
 
 interface AppState {
     selectedProject: Project | null;
     isProjectSelected: boolean;
-    zabbixServer: ZabbixServerResponseDTO | null;
+    zabbixServer: ZabbixServerResDTO | null;
 }
 
 
-const getZabbixServer = (id: number): ZabbixServerResponseDTO | null => {
+const getZabbixServer = (id: number): ZabbixServerResDTO | null => {
     const zabbix = useZabbixServerByProjectIdAndUser(id).data;
     return zabbix ? zabbix : null;
 }

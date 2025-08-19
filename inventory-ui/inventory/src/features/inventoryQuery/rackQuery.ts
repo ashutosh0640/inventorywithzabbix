@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { racksAPI } from '../../service/inventoryapi';
+import { locationQueryKeys } from '../inventoryQuery/locationQuery'
 import type { RackReqDTO } from '../../types/requestDto';
 import type { Rack, Page, RackSlot } from '../../types/responseDto';
 import { useAppSelector } from '../../slice/hooks';
@@ -8,21 +9,21 @@ import { useAppSelector } from '../../slice/hooks';
 const RACKS = 'Racks' as const;
 
 /** e.g. queryKeys.list() ➜ ['Projects','list'] */
-const queryKeys = {
+export const rackQueryKeys = {
     base: [RACKS] as const,
-    list: () => [...queryKeys.base, 'list'] as const,
+    list: () => [...rackQueryKeys.base, 'list'] as const,
     paged: (p: number, s: number) =>
-        [...queryKeys.base, 'paged', p, s] as const,
+        [...rackQueryKeys.base, 'paged', p, s] as const,
     search: (n: string, p: number, s: number) =>
-        [...queryKeys.base, 'search', n, p, s] as const,
-    sorted: () => [...queryKeys.base, 'sorted'] as const,
-    detail: (id: number) => [...queryKeys.base, id] as const
+        [...rackQueryKeys.base, 'search', n, p, s] as const,
+    sorted: () => [...rackQueryKeys.base, 'sorted'] as const,
+    detail: (id: number) => [...rackQueryKeys.base, id] as const
 };
 
 // Get all racks
 export const useRacks = () => {
     return useQuery<Rack[], Error>({
-        queryKey: queryKeys.list(),
+        queryKey: rackQueryKeys.list(),
         queryFn: racksAPI.getAll,
     });
 };
@@ -30,7 +31,7 @@ export const useRacks = () => {
 // Get rack by ID
 export const useRackById = (id: number) => {
     return useQuery<Rack, Error>({
-        queryKey: queryKeys.detail(id),
+        queryKey: rackQueryKeys.detail(id),
         queryFn: () => racksAPI.getById(id),
         enabled: !!id, // Prevents query from running if id is undefined
     });
@@ -39,7 +40,7 @@ export const useRackById = (id: number) => {
 export const useRackByIdAndUser = (id: number) => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<Rack, Error>({
-        queryKey: [queryKeys.detail(id), loginDetails?.id],
+        queryKey: [rackQueryKeys.detail(id), loginDetails?.id],
         queryFn: () => racksAPI.getRacksByIdForUser(id),
         enabled: !!id,
     });
@@ -47,7 +48,7 @@ export const useRackByIdAndUser = (id: number) => {
 
 export const useRackSlots = (id: number | null) => {
     return useQuery<RackSlot[], Error>({
-        queryKey: [queryKeys.detail(id ?? 0), 'slots'],
+        queryKey: [rackQueryKeys.detail(id ?? 0), 'slots'],
         queryFn: () => racksAPI.getSlotByRack(id ?? 0),
         enabled: !!id
     })
@@ -57,7 +58,7 @@ export const useRackSlots = (id: number | null) => {
 export const useRacksForUser = () => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<Rack[], Error>({
-        queryKey: [...queryKeys.list(), loginDetails?.id],
+        queryKey: [...rackQueryKeys.list(), loginDetails?.id],
         queryFn: () => racksAPI.getRacksForUser(),
     });
 };
@@ -67,7 +68,7 @@ export const useRacksForUser = () => {
 export const useRacksByLocationForUser = (locationid: number) => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<Rack[], Error>({
-        queryKey: [queryKeys.list, locationid, loginDetails?.id],
+        queryKey: [rackQueryKeys.list, locationid, loginDetails?.id],
         queryFn: () => racksAPI.getRacksByLocationForUser(locationid),
         enabled: !!locationid
     });
@@ -77,7 +78,7 @@ export const useRacksByLocationForUser = (locationid: number) => {
 export const useRacksForUserPaged = (page: number, size: number) => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<Page<Rack>, Error>({
-        queryKey: [queryKeys.paged(page, size), loginDetails?.id],
+        queryKey: [rackQueryKeys.paged(page, size), loginDetails?.id],
         queryFn: () => racksAPI.getRacksForUserPaged(page, size),
     });
 };
@@ -87,7 +88,7 @@ export const useRacksForUserPaged = (page: number, size: number) => {
 export const useRacksCountByUser = () => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<number, Error>({
-        queryKey: [queryKeys.base, "count", loginDetails?.id],
+        queryKey: [rackQueryKeys.base, "count", loginDetails?.id],
         queryFn: racksAPI.countByUser,
     });
 }
@@ -96,7 +97,7 @@ export const useRacksCountByUser = () => {
 // Search by name (paged)
 export const useSearchRacksByNamePaged = (name: string, page: number, size: number) => {
     return useQuery<Page<Rack>, Error>({
-        queryKey: [queryKeys.paged(page, size), name],
+        queryKey: [rackQueryKeys.paged(page, size), name],
         queryFn: () => racksAPI.searchByNamePaged(name, page, size),
         enabled: !!name, // Only run when name is non-empty
     });
@@ -105,14 +106,21 @@ export const useSearchRacksByNamePaged = (name: string, page: number, size: numb
 
 
 const invalidateLists = (qc: ReturnType<typeof useQueryClient>) =>
-    qc.invalidateQueries({ queryKey: queryKeys.base });
+    qc.invalidateQueries({ queryKey: rackQueryKeys.base });
+
+const locationInvalidatedLists = (qc: ReturnType<typeof useQueryClient>) =>
+    qc.invalidateQueries({ queryKey: locationQueryKeys.base })
 
 // Create a new rack
 export const useCreateRack = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (data: RackReqDTO) => racksAPI.create(data),
-        onSuccess: () => invalidateLists(qc)
+        onSuccess: () => {
+            invalidateLists(qc),
+                locationInvalidatedLists(qc)
+
+        }
     });
 };
 
@@ -125,7 +133,11 @@ export const useUpdateRack = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: ({ id, data }: { id: number; data: RackReqDTO }) => racksAPI.update(id, data),
-        onSuccess: () => invalidateLists(qc)
+        onSuccess: () => {
+            invalidateLists(qc),
+                locationInvalidatedLists(qc)
+
+        }
     });
 };
 
@@ -134,7 +146,11 @@ export const useUpdateRackByUser = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: ({ id, data }: { id: number; data: RackReqDTO }) => racksAPI.updateForUser(id, data),
-        onSuccess: () => invalidateLists(qc)
+        onSuccess: () => {
+            invalidateLists(qc),
+                locationInvalidatedLists(qc)
+
+        }
     });
 };
 
@@ -143,6 +159,10 @@ export const useDeleteRack = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => racksAPI.delete(id),
-        onSuccess: () => invalidateLists(qc)
+        onSuccess: () => {
+            invalidateLists(qc),
+                locationInvalidatedLists(qc)
+
+        }
     });
 };

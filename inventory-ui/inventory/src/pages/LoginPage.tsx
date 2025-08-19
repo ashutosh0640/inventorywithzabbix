@@ -10,11 +10,10 @@ interface LoginPageProps {
     onLoginSuccess: () => void;
 }
 
-type password = "password" | "text";
 
 const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
     const dispatch = useAppDispatch();
-    const { mutate: login, isPending, isError, error: loginErr } = useLogin();
+    const { mutate: login, isPending } = useLogin();
     const [isLoading, setIsLoading] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [form, setForm] = useState<LoginReqDTO>({
@@ -70,7 +69,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
 
 
     return (
-        <div className=" min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className=" min-h-screen bg-gray-100 flex items-center justify-center px-4 sm:px-6 lg:px-8 bg-custom-gradient">
             <div className=" max-w-screen-md w-full space-y-8 flex flex-row items-stretch justify-center">
                 <div className=" text-center flex flex-col items-center justify-center py-8 px-4 sm:px-10">
                     <div className="flex justify-center">
@@ -78,13 +77,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             <Database size={32} />
                         </div>
                     </div>
-                    <h2 className="mt-6 text-3xl font-extrabold text-gray-900">InvenTrack</h2>
-                    <p className="mt-2 text-sm text-gray-600">
+                    <h2 className="mt-6 text-3xl font-extrabold text-gray-100">InvenTrack</h2>
+                    <p className="mt-2 text-sm text-gray-300">
                         Sign in to your inventory management system
                     </p>
                 </div>
 
-                <div className=" mt-8 bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+                <div className=" mt-8 bg-slate-200 py-8 px-4 shadow sm:rounded-lg sm:px-10 opacity-100">
                     <form className=" max-w-xs space-y-6" onSubmit={handleSubmit}>
                         {error && (
                             <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-4">

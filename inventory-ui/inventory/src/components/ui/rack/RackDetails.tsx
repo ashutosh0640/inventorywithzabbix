@@ -15,7 +15,8 @@ import {
   Wifi,
   Shield,
   Router,
-  Zap
+  Zap,
+  Dot
 } from 'lucide-react';
 import { useParams } from 'react-router-dom';
 
@@ -57,8 +58,6 @@ export const RackDetails = () => {
       const server = rack.server.find(s => s.rackSlotNumber === slotNumber);
       const networkDevice = rack.networkDevices?.find(d => d.rackSlotNumber === slotNumber);
 
-
-
       return {
         number: slotNumber,
         server,
@@ -76,8 +75,8 @@ export const RackDetails = () => {
 
 
   return (
-    <div className="min-h-screen bg-gray-50 ">
-      <div className="bg-white rounded-xl shadow-xl w-full max-w-6xl min-h-screen overflow-hidden">
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white rounded-xl shadow-xl  min-h-screen overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between p-1 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
           <div className="flex items-center">
@@ -110,7 +109,7 @@ export const RackDetails = () => {
                 {slots.map((slot) => (
                   <div
                     key={slot.number}
-                    className={`flex items-center justify-between p-1 rounded border text-xs ${slot.occupied
+                    className={`flex items-center justify-start p-1 rounded border text-xs ${slot.occupied
                       ? slot.server
                         ? 'bg-blue-100 border-blue-300 '
                         : 'bg-green-100 border-green-300'
@@ -121,27 +120,21 @@ export const RackDetails = () => {
                       {slot.number.toString().padStart(2, '0')}
                     </span>
 
-                    {slot.server && (
-                      <div className="flex items-center flex-1 ml-2">
-                        <Server size={10} className="text-blue-600 mr-1" />
-                        <span className="text-xs font-medium truncate text-gray-900">
-                          {slot.server.name}
-                        </span>
-                      </div>
-                    )}
+                    {slot.occupied ?
+                      <span className=' flex flex-col'>
+                        <span>
+                          {slot.server?.manufacturer ?? "Unknown"} | {slot.server?.modelName ?? "Unknown"}
 
-                    {slot.networkDevice && (
-                      <div className="flex items-center flex-1 ml-2">
-                        {getDeviceIcon(slot.networkDevice.type)}
-                        <span className="text-xs font-medium truncate ml-1 text-gray-900">
-                          {slot.networkDevice.name}
                         </span>
-                      </div>
-                    )}
+                        <span>
+                          {slot.server?.serialNumber ?? "Unknown"}
+                        </span>
 
-                    {!slot.occupied && (
-                      <span className="text-xs text-gray-400 flex-1 ml-2">Empty</span>
-                    )}
+                      </span>
+                      :
+                      <span>
+                        <span className="text-xs text-gray-400 flex-1 ml-2">Empty</span>
+                      </span>}
                   </div>
                 ))}
               </div>
@@ -226,9 +219,6 @@ export const RackDetails = () => {
                             Status
                           </th>
                           <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Server Name
-                          </th>
-                          <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Vendor
                           </th>
                           <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -258,12 +248,7 @@ export const RackDetails = () => {
                               )}
 
                             </td>
-                            <td>
-                              <div className="flex items-center">
-                                <Server size={12} className="text-blue-600 mr-3" />
-                                <span className="font-medium text-gray-900">{server.name}</span>
-                              </div>
-                            </td>
+
                             <td>
                               <span className="text-xs text-gray-600">{server.manufacturer}</span>
                             </td>
@@ -277,7 +262,7 @@ export const RackDetails = () => {
                               <span className="text-xs text-gray-600">{server.serialNumber}</span>
                             </td>
                             <td>
-                              <span className="text-xs text-gray-600">{server.interfaces[0].ip}</span>
+                              <span className="text-xs text-gray-600">{server.interfaces[0]?.ip || "NO IP"}</span>
                             </td>
                           </tr>
                         ))}
@@ -333,14 +318,7 @@ export const RackDetails = () => {
                               )}
 
                             </td>
-                            <td>
-                              <div className=" flex items-center justify-start">
-                                <div className="text-green-600 mr-3">
-                                  {getDeviceIcon(device.type)}
-                                </div>
-                                <span className=" text-xs font-medium text-gray-900">{device.name}</span>
-                              </div>
-                            </td>
+
                             <td>
                               <span className=" text-xs text-gray-600">{device.manufacturer}</span>
                             </td>

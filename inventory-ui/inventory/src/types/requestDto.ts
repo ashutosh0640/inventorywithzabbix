@@ -1,4 +1,3 @@
-import type { DelHTMLAttributes } from "react";
 
 export interface UserReqDTO {
     username: string;
@@ -44,8 +43,6 @@ export interface RegisterReqDTO {
 
 
 
-
-
 export interface LocationReqDTO {
     name: string;
     userIds?: number[];
@@ -75,7 +72,6 @@ export interface InterfacesDTO {
 }
 
 export interface BareMetalReqDTO {
-    name: string;
     type: string;
     management: string;
     manufacturer: string;
@@ -88,7 +84,6 @@ export interface BareMetalReqDTO {
 }
 
 export interface NetworkDeviceReqDTO {
-    name: string;
     type: string;
     manufacturer: string;
     model: string;
@@ -103,14 +98,17 @@ export interface NetworkDeviceReqDTO {
 
 
 export interface VirtualPlatformReqDTO {
-    platformName: string;
+    hostType: string;
+    type: string;
     version: string;
-    ipAddress: string;
+    interfaces: InterfacesDTO[];
+    cpuModel: string;
     cpuCores: number;
     ramSize: number;
     ramSizeUnit: 'KB' | 'MB' | 'GB' | 'TB' | string;
     storageSize: number;
     storageSizeUnit: 'KB' | 'MB' | 'GB' | 'TB' | string;
+    storeageType: string;
     serverId: number;
     usersId?: number[];
 }

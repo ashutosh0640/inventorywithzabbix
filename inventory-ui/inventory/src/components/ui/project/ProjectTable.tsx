@@ -1,24 +1,32 @@
 import React, { useState } from 'react';
 import type { Project } from '../../../types/responseDto';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModel';
-import { LoadingSkeleton } from '../LoadingSkeleton';
-import { Calendar, MapPin, Edit, Trash2 } from 'lucide-react';
+import { Calendar, MapPin, Edit, Trash2, Plus, Eye } from 'lucide-react';
 
 interface ProjectTableProps {
   projects: Project[];
   onEdit: (project: Project) => void;
   onDelete: (projectId: number) => void;
+  addZabbixServer: (project: Project) => void;
 }
 
+export const ProjectTable: React.FC<ProjectTableProps> = ({
+  projects,
+  onEdit,
+  onDelete,
+  addZabbixServer
+}) => {
 
-
-export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, onDelete }) => {
-
+  const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
+  const projectAddPermission = loginDetails?.role.includes('PROJECT_WRITE_PROJECT') || false;
+  const projectEditPermission = loginDetails?.role.includes('PROJECT_EDIT_PROJECT') || false;
+  const projectDeletePermission = loginDetails?.role.includes('PROJECT_DELETE_PROJECT') || false;
+  const projectViewPermission = !loginDetails?.role.includes('PROJECT_WRITE_PROJECT') && !loginDetails?.role.includes('PROJECT_EDIT_PROJECT') && !loginDetails?.role.includes('PROJECT_DELETE_PROJECT') || false;
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [locationToDelete, setLocationToDelete] = useState<number | null>(null);
+  const [itemToDelete, setItemToDelete] = useState<number | null>(null);
 
-  const openModal = (locationId: number) => {
-    setLocationToDelete(locationId);
+  const openModal = (id: number) => {
+    setItemToDelete(id);
     setIsModalOpen(true);
   };
 
@@ -27,18 +35,12 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
   }
 
   const handleDelete = () => {
-    if (locationToDelete !== null) {
-      onDelete(locationToDelete);
+    if (itemToDelete !== null) {
+      onDelete(itemToDelete);
       setIsModalOpen(false);
-      setLocationToDelete(null);
+      setItemToDelete(null);
     }
   };
-
-  if (!projects) {
-        return (
-            <LoadingSkeleton />
-        )
-    }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -46,19 +48,19 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Project
               </th>
-              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Created
               </th>
-              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Locations
               </th>
-              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Team
               </th>
-              <th className="px-2 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -119,21 +121,35 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
                   </div>
                 </td>
                 <td>
-                  <div className="flex items-center justify-center space-x-1">
-                    <button
-                      onClick={() => onEdit(project)}
-                      className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Edit project"
-                    >
-                      <Edit size={16} />
-                    </button>
-                    <button
-                      onClick={() => openModal(project.id)}
-                      className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Delete project"
-                    >
-                      <Trash2 size={16} />
-                    </button>
+                  <div className="flex items-left justify-center space-x-1">
+                    {projectEditPermission && (
+                      <button
+                        onClick={() => onEdit(project)}
+                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit project"
+                      >
+                        <Edit size={16} />
+                      </button>)}
+                    {projectDeletePermission && (
+                      <button
+                        onClick={() => openModal(project.id)}
+                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete project"
+                      >
+                        <Trash2 size={16} />
+                      </button>)}
+                    {projectAddPermission && (
+                      <button
+                        onClick={() => addZabbixServer(project)}
+                        className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                        title={`Add zabbix server`}
+                      >
+                        <Plus size={16} />
+                      </button>)}
+                    {projectViewPermission && (
+                      <p className=' text-gray-500 text-xs'>View only</p>
+                    )}
+
                   </div>
                 </td>
               </tr>

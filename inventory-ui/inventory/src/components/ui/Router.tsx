@@ -5,6 +5,7 @@ import Projects from '../../pages/ProjectPage';
 import Locations from '../../pages/LocationPage';
 import Racks from '../../pages/RacksPage';
 import Virtualizations from '../../pages/VirtualizationPage';
+import ZabbixServerPage from '../../pages/zabbix/ZabbixServerPage';
 import LayoutRoute from '../routes/LayoutRoutes';
 import PrivateRoute from './PrivateRoutes';
 import { LoginRoute } from '../routes/LoginRoutes';
@@ -13,7 +14,6 @@ import Devices from '../../pages/DevicePage';
 
 
 const Router = () => {
-  console.log("Router.tsx page invoked.")
   return (
     <BrowserRouter>
       <Routes>
@@ -59,6 +59,7 @@ const Router = () => {
 
             {/* Zabbix routes */}
             <Route path="zabbix">
+              <Route path="server" element={<ZabbixServerPage />} />
               <Route path='dashboard' element={<div>Zabbix Dashboard</div>} />
               <Route path="problems" element={<div>Zabbix Problems</div>} />
               <Route path="hosts" element={<div>Zabbix Hosts</div>} />

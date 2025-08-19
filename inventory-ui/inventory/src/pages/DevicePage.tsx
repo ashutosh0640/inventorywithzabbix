@@ -1,35 +1,50 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { Location, BareMetal, NetworkDevices } from '../types/responseDto';
-import type { BareMetalReqDTO, NetworkDeviceReqDTO } from '../types/requestDto';
-
+import type { BareMetalReqDTO, NetworkDeviceReqDTO, VirtualPlatformReqDTO } from '../types/requestDto';
 import { useLocationsForUser } from '../features/inventoryQuery/locationQuery';
 import { useUsers } from '../features/inventoryQuery/userQuery';
-import { useBaremetalByRackAndUser, useGetBareMetalByUser, useCreateBareMetal, useUpdateBareMetal, useDeleteBareMetal } from '../features/inventoryQuery/baremetalQuery';
-import { useDeviceByRackAndUser, useNetworkDevicesByUser, useCreateNetworkDevice, useDeleteNetworkDevice, useUpdateNetworkDevice } from '../features/inventoryQuery/networkDeviceQuery';
-import { DeviceTable } from '../components/ui/device/DeviceTable';
+import {
+  useBaremetalByRackAndUser, useGetBareMetalByUser, useCreateBareMetal,
+  useUpdateBareMetal, useDeleteBareMetal
+} from '../features/inventoryQuery/baremetalQuery';
+
+import {
+  useDeviceByRackAndUser, useNetworkDevicesByUser, useCreateNetworkDevice,
+  useDeleteNetworkDevice, useUpdateNetworkDevice
+} from '../features/inventoryQuery/networkDeviceQuery';
+
+import { useCreateVP, useUpdateVPForUser } from '../features/inventoryQuery/vpQuery'
+
 import { ServerTable } from '../components/ui/device/ServerTable';
 import { NetworkDeviceTable } from '../components/ui/device/NetworkDeviceTable';
 import { BaremetalForm } from '../components/ui/device/BaremetalForm';
 import { NetworkDeviceForm } from '../components/ui/device/NetworkDeviceForm';
-import { TableSkeleton, WaveLoader } from '../components/ui/LoadingSkeleton';
+import { VirtualizationForm } from '../components/ui/device/VirtualizationForm';
+import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
+import { AlertMessage } from '../components/ui/AlertMessage';
 import {
   Server,
   Network,
   Search,
   Filter,
   MapPin,
-  HardDrive
+  HardDrive,
 } from 'lucide-react';
 
-
+type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 const DevicePage: React.FC = () => {
+
+
+  const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<AlertType | null>(null);
 
   const [selectedRack, setSelectedRack] = useState<number | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
   const { data: baremetals = [] } = useGetBareMetalByUser();
-  const { data: networkDevices } = useNetworkDevicesByUser();
+  const { data: networkDevices = [] } = useNetworkDevicesByUser();
 
   const { data: baremetalsByRack } = useBaremetalByRackAndUser(selectedRack);
   const { mutate: createBaremetal } = useCreateBareMetal();
@@ -41,11 +56,12 @@ const DevicePage: React.FC = () => {
   const { mutate: deleteNetworkDevice } = useDeleteNetworkDevice();
   const { mutate: updateNetworkDevice } = useUpdateNetworkDevice();
 
-
+  const { mutate: createVP } = useCreateVP();
+  const { mutate: updateVP } = useUpdateVPForUser();
+  //const { mutate: deleteVP } = useDeleteVPByUser();
 
   const [selectedServer, setSelectedServer] = useState<BareMetal | null>(null);
   const [selectedNetworkDevice, setSelectedNetworkDevice] = useState<NetworkDevices | null>(null);
-
 
   const { data: locationList } = useLocationsForUser();
   const { data: userList } = useUsers();
@@ -55,6 +71,7 @@ const DevicePage: React.FC = () => {
 
   const [isBaremetalFormOpen, setIsBaremetalFormOpen] = useState(false);
   const [isNetworkDeviceFormOpen, setIsNetworkDeviceFormOpen] = useState(false);
+  const [isVirtualizationFormOpen, setIsVirtualizationFormOpen] = useState(false);
 
   // Get available racks for selected location
   useMemo(() => {
@@ -64,50 +81,47 @@ const DevicePage: React.FC = () => {
   }, [selectedLocation]);
 
 
+
+  //Filter server
   const baremetalList = baremetalsByRack ?? baremetals;
-
-
   const filteredBaremetals = baremetalList.filter(b => {
-    const matchSearch = b.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.modelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    b.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchSearch = b.manufacturer.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.modelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      b.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchIp = b.interfaces.map(i => i.ip.includes(searchTerm));
+
+    const matchRack = selectedRack === null || b.rack.id === selectedRack;
+
+    return matchSearch && matchIp && matchRack;
   })
 
 
 
-  // Filter equipment based on search, location, and rack
-  const filteredServers = useMemo(() => {
-    return servers.filter(server => {
-      const matchesSearch = server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        server.modelName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        server.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchIp =  server.interfaces.map(i=>i.ip.includes(searchTerm))
-      //const matchesLocation = selectedLocation === null || server.rack.location === selectedLocation;
-      const matchesRack = selectedRack === null || server.rack.id === selectedRack;
-      return matchesSearch && matchesRack && matchIp;
-    });
-  }, [servers, searchTerm, selectedLocation, selectedRack]);
+  // Filter network device
+  const networkDeviceList = networkDevices ?? deviceByRack;
+  const filteredNetworkDevices = networkDeviceList.filter(n => {
+    const matchSearch = n.model.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      n.serialNumber.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const filteredNetworkDevices = useMemo(() => {
-    return networkDevices.filter(device => {
-      const matchesSearch = device.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        device.type.toLowerCase().includes(searchTerm.toLowerCase());
-      //const matchesLocation = selectedLocation === null || device.rack.location === selectedLocation;
-      const matchesRack = selectedRack === null || device.rack.id === selectedRack;
-      return matchesSearch && matchesRack;
-    });
-  }, [networkDevices, searchTerm, selectedLocation, selectedRack]);
+    const matchIp = n.interfaces.map(i => i.ip.includes(searchTerm));
+
+    const matchRack = selectedRack === null || n.rack.id === selectedRack;
+
+    return matchSearch && matchIp && matchRack;
+  })
 
 
+
+  // Handle select location
   const handleSelectLocation = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedId = parseInt(e.target.value);
     const location = locationList?.find(loc => loc.id === selectedId);
     setSelectedLocation(location ?? null);
   };
 
+
+  // Handle edit Baremetal or network device
   const handleEdit = (data: BareMetal | NetworkDevices) => {
     if (data.type === "PHYSICAL_SERVER") {
       setSelectedServer(data as BareMetal);
@@ -119,107 +133,178 @@ const DevicePage: React.FC = () => {
   }
 
 
+  // Handle delete server
   const handleDeleteServer = (serverId: number) => {
-    if (window.confirm('Are you sure you want to delete this server?')) {
-      deleteBaremetal(serverId, {
-        onSuccess: () => {
-          setServers(servers.filter(server => server.id !== serverId));
-        },
-        onError: (error) => {
-          console.error('Fount Error deleting server, Reason: ', error.message);
-        },
-      })
-
-    }
+    deleteBaremetal(serverId, {
+      onSuccess: () => {
+        setAlertType("success");
+        setAlertMessage(`Server deleted successfully.`);
+      },
+      onError: (error) => {
+        setAlertType("error");
+        setAlertMessage(`Failed to delete server. ${error.message}`);
+      },
+    })
   };
 
+  // Handle delete network device
   const handleDeleteNetworkDevice = (deviceId: number) => {
-    if (window.confirm('Are you sure you want to delete this network device?')) {
-      deleteNetworkDevice(deviceId, {
-        onSuccess: () => {
-          setNetworkDevices(networkDevices.filter(device => device.id !== deviceId));
-        },
-        onError: (error) => {
-          console.error('Fount Error deleting network device, Reason: ', error.message);
-        },
-      })
-    }
+    deleteNetworkDevice(deviceId, {
+      onSuccess: () => {
+        setAlertType("success");
+        setAlertMessage(`Device deleted successfully.`);
+      },
+      onError: (error) => {
+        setAlertType("error");
+        setAlertMessage(`Failed to delete device. ${error.message}`);
+      },
+    })
   };
 
 
+  // Handle delete network device
+  // const handleDeleteVirtualPlatform = (vpId: number) => {
+  //     deleteVP(vpId, {
+  //       onSuccess: () => {
+  //         setAlertType("success");
+  //         setAlertMessage(`Device deleted successfully.`);
+  //       },
+  //       onError: (error) => {
+  //         setAlertType("error");
+  //         setAlertMessage(`Failed to delete device. ${error.message}`);
+  //       },
+  //     })
+  // };
+
+
+
+
+
+
+
+  // Handle Add Baremetal
   const handleAddBaremetal = () => {
     setIsBaremetalFormOpen(true);
   }
 
+  // Handle Add Network Device
   const handleAddNetworkDevice = () => {
     setIsBaremetalFormOpen(true);
   }
 
+  // Handle Add Virtual Platform
+  const handleAddVirtualization = (data: BareMetal) => {
+    if (data.type === "PHYSICAL_SERVER") {
+      setSelectedServer(data as BareMetal);
+      setIsVirtualizationFormOpen(true);
+    }
+  }
+
+
+
+  // Handle Submit Baremetal
   const handleBaremetalFormSubmit = (server: BareMetalReqDTO) => {
 
     if (selectedServer) {
-      // Update existing server
+      // Update baremetal
       updateBaremetal({
         id: selectedServer.id,
         baremetalData: server
       }, {
         onSuccess: (response) => {
-          setServers(servers.map(server => server.id === selectedServer.id ? response.data : server));
+          setAlertType('success');
+          setAlertMessage(`Server ${response.serialNumber} updated successfully.`);
         },
         onError: (error) => {
-          console.error('Fount Error updating server, Reason: ', error.message);
-        },
+          setAlertType('error');
+          setAlertMessage(`Failed to update server. ${error.message}`);
+        }
       })
-      setIsBaremetalFormOpen(false);
+
     } else {
       // Add new server
-      createBaremetal(server,
-        {
-          onSuccess: (response) => {
-            setServers([...servers, response.data]);
-            setIsBaremetalFormOpen(false);
-          },
-          onError: (error) => {
-            console.error('Fount Error creating server, Reason: ', error.message);
-          },
+      createBaremetal(server, {
+        onSuccess: (response) => {
+          setAlertType('success');
+          setAlertMessage(`Server ${response.serialNumber} created successfully.`);
+        },
+        onError: (error) => {
+          setAlertType('error');
+          setAlertMessage(`Failed to update project. ${error.message}`);
         }
-      )
-      setIsBaremetalFormOpen(false);
+      })
     }
+    setSelectedServer(null);
+    setIsBaremetalFormOpen(false);
   };
 
+  // Handle submit network device
   const handleNetworkDeviceFormSubmit = (device: NetworkDeviceReqDTO) => {
 
     if (selectedNetworkDevice) {
+      // Update a network device
       updateNetworkDevice({
         id: selectedNetworkDevice.id,
         data: device
       }, {
         onSuccess: (response) => {
-          setNetworkDevices(networkDevices.map(device => device.id === selectedNetworkDevice.id ? response.data :
-            device));
+          setAlertType('success');
+          setAlertMessage(`Device ${response.name} updated successfully.`);
         },
         onError: (error) => {
-          console.error('Fount Error updating device, Reason: ', error.message);
-        },
+          setAlertType('error');
+          setAlertMessage(`Failed to update device. ${error.message}`);
+        }
       })
-      setIsNetworkDeviceFormOpen(false);
+
     } else {
       // Add new network device
-      createNetworkDevice(device,
-        {
-          onSuccess: (response) => {
-            setNetworkDevices([...networkDevices, response.data]);
-            setIsBaremetalFormOpen(false);
-          },
-          onError: (error) => {
-            console.error('Fount Error creating device, Reason: ', error.message);
-          },
+      createNetworkDevice(device, {
+        onSuccess: (response) => {
+          setAlertType('success');
+          setAlertMessage(`Device ${response.name} created successfully.`);
+        },
+        onError: (error) => {
+          setAlertType('error');
+          setAlertMessage(`Failed to update project. ${error.message}`);
         }
-      )
-      setIsNetworkDeviceFormOpen(false);
+      })
+    }
+    setSelectedNetworkDevice(null);
+    setIsNetworkDeviceFormOpen(false);
+  };
+
+
+  // Handle submit virtual platform
+  const handleVirtualizationFormSubmit = async (equipment: VirtualPlatformReqDTO) => {
+    if (selectedServer) {
+      updateVP({
+        vpId: selectedServer.id,
+        vpData: equipment
+      }, {
+        onSuccess: () => {
+          setAlertType('success');
+          setAlertMessage(`Virtual platform updated successfully.`);
+        },
+        onError: (error) => {
+          setAlertType('error');
+          setAlertMessage(`Failed to update virtual platform. ${error.message}`);
+        }
+      })
+    } else {
+      createVP(equipment, {
+        onSuccess: (response) => {
+          setAlertType('success');
+          setAlertMessage(`Virtual platform ${response.name} created successfully.`);
+        },
+        onError: (error) => {
+          setAlertType('error');
+          setAlertMessage(`Failed to create virtual platform. ${error.message}`);
+        }
+      })
     }
   };
+
 
   const handleBaremetalFormClose = () => {
     setIsBaremetalFormOpen(false);
@@ -231,7 +316,18 @@ const DevicePage: React.FC = () => {
     setSelectedNetworkDevice(null);
   };
 
+  const handleVirtualizationFormClose = () => {
+    setIsVirtualizationFormOpen(false);
+    setSelectedServer(null);
+  }
+
   // Show loading state
+
+  if (!filteredBaremetals || !filteredNetworkDevices) {
+    return (
+      <LoadingSkeleton />
+    )
+  }
 
 
 
@@ -245,13 +341,14 @@ const DevicePage: React.FC = () => {
             <div className="mb-4 sm:mb-0">
               <div className="flex items-center mb-2">
                 <HardDrive size={20} className="text-blue-600 mr-3" />
-                <h1 className="text-xl font-bold text-gray-900">Equipment Management</h1>
+                <h1 className="text-xl font-bold text-gray-900">Device Management</h1>
               </div>
               <p className="text-sm text-gray-500">
                 Manage servers and network devices across all locations
               </p>
             </div>
             <div className="flex items-center space-x-3">
+              { loginDetails?.role.includes('AREMETAL_WRITE_BAREMETAL') && (
               <button
                 onClick={handleAddBaremetal}
                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
@@ -259,19 +356,24 @@ const DevicePage: React.FC = () => {
                 <Server size={16} className="mr-2" />
                 Add Server
               </button>
+              )}
+
+
+              { loginDetails?.role.includes('WRITE_FIREWALL') && (
+
               <button
                 onClick={handleAddNetworkDevice}
                 className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
               >
                 <Network size={16} className="mr-2" />
                 Add Network Device
-              </button>
+              </button>)}
             </div>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
+        <div className="mb-6 bg-white rounded-md border-gray-200 p-2">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search and Filters */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-1">
@@ -282,7 +384,7 @@ const DevicePage: React.FC = () => {
                   placeholder="Search equipment..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
 
@@ -331,7 +433,7 @@ const DevicePage: React.FC = () => {
         {/* Results Summary */}
         <div className="mb-4">
           <p className="text-xs text-gray-600">
-            Showing {filteredServers.length} servers and {filteredNetworkDevices.length} network devices
+            Showing {filteredBaremetals.length} servers and {filteredNetworkDevices.length} network devices
           </p>
         </div>
 
@@ -343,14 +445,15 @@ const DevicePage: React.FC = () => {
               <div className="flex items-center">
                 <Server size={20} className="text-blue-600 mr-2" />
                 <h2 className="text-sm font-semibold text-gray-900">
-                  Servers ({filteredServers.length})
+                  Servers ({filteredBaremetals.length})
                 </h2>
               </div>
             </div>
             <ServerTable
-              equipment={filteredServers}
+              equipment={filteredBaremetals}
               onEdit={handleEdit}
               onDelete={handleDeleteServer}
+              addVirtualization={handleAddVirtualization}
             />
           </div>
 
@@ -391,6 +494,22 @@ const DevicePage: React.FC = () => {
           availableLocations={locationList}
           availableUsers={userList}
         />
+
+        <VirtualizationForm
+          isOpen={isVirtualizationFormOpen}
+          onClose={handleVirtualizationFormClose}
+          onSubmit={handleVirtualizationFormSubmit}
+          server={selectedServer}
+          availableUsers={userList}
+        />
+
+
+        {alertMessage && (
+          <AlertMessage
+            message={alertMessage}
+            type={alertType}
+          />
+        )}
       </div>
     </div>
   );

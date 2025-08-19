@@ -2,11 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { useProjects } from '../features/inventoryQuery/projectQuery';
 import { useUsers } from '../features/inventoryQuery/userQuery';
 import { useLocations, useCreateLocation, useUpdateLocation, useDeleteLocation } from '../features/inventoryQuery/locationQuery';
+import { useCreateRack } from '../features/inventoryQuery/rackQuery';
 import type { Project, Location, User } from '../types/responseDto';
-import type { LocationReqDTO } from '../types/requestDto';
+import type { LocationReqDTO, RackReqDTO } from '../types/requestDto';
 import { LocationCard } from '../components/ui/location/LocationCard';
 import { LocationTable } from '../components/ui/location/LocationTable';
 import { LocationForm } from '../components/ui/location/LocationForm';
+import { RackForm } from '../components/ui/location/RackForm';
 import { AlertMessage } from '../components/ui/AlertMessage';
 import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
 
@@ -23,9 +25,9 @@ type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 const LocationPage: React.FC = () => {
 
+  const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
   const [alertMessage, setAlertMessage] = useState<string | null>(null)
   const [alertType, setAlertType] = useState<AlertType | null>(null)
-
 
   const { data: location = [] } = useLocations();
 
@@ -33,6 +35,7 @@ const LocationPage: React.FC = () => {
 
   const { data: project } = useProjects();
 
+  const { mutate: createRack } = useCreateRack();
   const { mutate: createLocation } = useCreateLocation();
   const { mutate: updateLocation } = useUpdateLocation();
   const { mutate: deleteLocation } = useDeleteLocation();
@@ -42,6 +45,7 @@ const LocationPage: React.FC = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isRackFormOpen, setIsRackFormOpen] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
 
 
@@ -77,6 +81,12 @@ const LocationPage: React.FC = () => {
   const handleAddLocation = () => {
     setIsFormOpen(true);
   };
+
+  const handleAddRack = (location: Location) => {
+    setSelectedLocation(location);
+    setIsRackFormOpen(true);
+    console.log("add rack handle")
+  }
 
   const handleFormSubmit = (locationData: LocationReqDTO) => {
     if (selectedLocation) {
@@ -124,16 +134,35 @@ const LocationPage: React.FC = () => {
     }, 3000);
   };
 
+  const handleRackFormSubmit = (rack: RackReqDTO) => {
+    createRack(rack, {
+      onSuccess: (response) => {
+        setAlertType('success');
+        setAlertMessage(`Rack ${response.name} created successfully.`);
+      },
+      onError: (error) => {
+        console.error('Error creating rack:', error.message);
+        setAlertType('error');
+        setAlertMessage(`Failed to create rack. ${error.message}`);
+      }
+    })
+  }
+
   const handleFormClose = () => {
     setIsFormOpen(false);
     setSelectedLocation(null);
   };
 
+  const handleRackFormClose = () => {
+    setIsRackFormOpen(false);
+    setSelectedLocation(null);
+  }
+
   useEffect(() => {
     setUsers(user || []);
     setProjects(project || []);
     //setLocations(location || [])
-  }, [ location, filteredLocations]);
+  }, [location, filteredLocations]);
 
 
   if (!location) {
@@ -157,13 +186,17 @@ const LocationPage: React.FC = () => {
                 Manage and track your location portfolio
               </p>
             </div>
+
+
+            {loginDetails?.role.includes('LOCATION_WRITE_LOCATION') && (
+
             <button
               onClick={handleAddLocation}
               className="inline-flex items-center p-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               <Plus size={16} className="mr-2" />
               Add Location
-            </button>
+            </button>)}
           </div>
         </div>
 
@@ -252,6 +285,7 @@ const LocationPage: React.FC = () => {
             locations={filteredLocations}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            addRack={handleAddRack}
           />
         )}
 
@@ -262,6 +296,15 @@ const LocationPage: React.FC = () => {
           onSubmit={handleFormSubmit}
           location={selectedLocation}
           availableUsers={users}
+        />
+
+        {/* Rack Form Modal */}
+        <RackForm
+          isOpen={isRackFormOpen}
+          onClose={handleRackFormClose}
+          onSubmit={handleRackFormSubmit}
+          location={selectedLocation}
+          availableUsers={users || []}
         />
 
         {alertMessage && (

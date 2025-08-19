@@ -25,6 +25,7 @@ type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 const RacksPage: React.FC = () => {
 
+  const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
   const navigate = useNavigate();
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertType, setAlertType] = useState<AlertType | null>(null);
@@ -164,13 +165,14 @@ const RacksPage: React.FC = () => {
                 Manage and monitor your server room infrastructure
               </p>
             </div>
+            {loginDetails?.role.includes('RACK_WRITE_RACK') && (
             <button
               onClick={handleAddRack}
               className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
             >
               <Plus size={16} className="mr-2" />
               Add Rack
-            </button>
+            </button>)}
           </div>
         </div>
 

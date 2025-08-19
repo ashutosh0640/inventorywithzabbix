@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { zabbixHostsAPI } from '../../service/zabbixApi/zabbixHostAPI';
 
-
+// Create Hosts
 export const useCreateZabbixHost = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -14,6 +14,7 @@ export const useCreateZabbixHost = () => {
 }
 
 
+// Delete Host
 export const useDeleteZabbixHost = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -26,6 +27,7 @@ export const useDeleteZabbixHost = () => {
 }
 
 
+// Get Hosts
 export const useZabbixHosts = (projectId: number, params: object) => {
     return useQuery({
         queryKey: ['ZabbixHosts', projectId, params],
@@ -35,6 +37,7 @@ export const useZabbixHosts = (projectId: number, params: object) => {
 }
 
 
+// Mass add Hosts
 export const useAddmassZabbixHosts = () => {
     const queryClient = useQueryClient();
     return useMutation({
@@ -46,6 +49,7 @@ export const useAddmassZabbixHosts = () => {
     })
 }
 
+// Mass remove Hosts
 export const useRemovemassZabbixHosts = () => {
     const queryClient = useQueryClient();
     return useMutation({

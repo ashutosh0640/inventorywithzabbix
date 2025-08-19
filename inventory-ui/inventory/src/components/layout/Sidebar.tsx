@@ -11,7 +11,6 @@ import {
   X,
   Database,
   HardDrive,
-  Network,
   Settings,
   Warehouse,
   BellRing,
@@ -232,12 +231,14 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
           />
         </NavItem>
 
+        { loginDetails?.role.includes('ROLE_ROOT') && (
+
         <NavItem
           icon={<Settings size={16} />}
           label="Settings"
           isActive={currentPath === '/settings'}
           onClick={() => onNavigate('/settings')}
-        />
+        />)}
         
 
         <NavItem
@@ -247,6 +248,12 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
           isExpanded={expandedMenus.zabbix}
           onClick={() => toggleMenu('zabbix')}
         >
+          <NavItem
+            icon={<ChartArea size={16} />}
+            label="Zabbix Server"
+            isActive={currentPath === '/zabbix/server'}
+            onClick={() => onNavigate('/zabbix/server')}
+          />
           <NavItem
             icon={<ChartArea size={16} />}
             label="Dashboard"

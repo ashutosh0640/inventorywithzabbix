@@ -13,15 +13,15 @@ import { useAppSelector } from '../../slice/hooks';
 const LOCATIONS = 'Locations' as const;
 
 
-const queryKeys = {
+export const locationQueryKeys = {
     base: [LOCATIONS] as const,
-    list: () => [...queryKeys.base, 'list'] as const,
-    paged: (p: number, s: number) => [...queryKeys.base, 'paged', p, s] as const,
-    search: (n: string, p: number, s: number) => [...queryKeys.base, 'search', n, p, s] as const,
-    sorted: () => [...queryKeys.base, 'sorted'] as const,
-    detail: (id: number) => [...queryKeys.base, id] as const,
-    userList: () => [...queryKeys.base, 'user'] as const,
-    counts: () => [...queryKeys.base, 'counts'] as const
+    list: () => [...locationQueryKeys.base, 'list'] as const,
+    paged: (p: number, s: number) => [...locationQueryKeys.base, 'paged', p, s] as const,
+    search: (n: string, p: number, s: number) => [...locationQueryKeys.base, 'search', n, p, s] as const,
+    sorted: () => [...locationQueryKeys.base, 'sorted'] as const,
+    detail: (id: number) => [...locationQueryKeys.base, id] as const,
+    userList: () => [...locationQueryKeys.base, 'user'] as const,
+    counts: () => [...locationQueryKeys.base, 'counts'] as const
 };
 
 // -----------------------------------------------------------------------------
@@ -30,7 +30,7 @@ const queryKeys = {
 export const useLocations = () => {
 
     return useQuery<Location[], Error>({
-        queryKey: queryKeys.list(),
+        queryKey: locationQueryKeys.list(),
         queryFn: locationsAPI.getAll
     });
 
@@ -39,17 +39,17 @@ export const useLocations = () => {
 
 export const useLocation = (id: number) =>
     useQuery({
-        queryKey: queryKeys.detail(id),
+        queryKey: locationQueryKeys.detail(id),
         queryFn: () => locationsAPI.getById(id),
         enabled: !!id
     });
 
 export const useSortedLocations = () =>
-    useQuery({ queryKey: queryKeys.sorted(), queryFn: locationsAPI.getSorted });
+    useQuery({ queryKey: locationQueryKeys.sorted(), queryFn: locationsAPI.getSorted });
 
 export const usePagedLocations = (page: number, size: number) =>
     useQuery({
-        queryKey: queryKeys.paged(page, size),
+        queryKey: locationQueryKeys.paged(page, size),
         queryFn: () => locationsAPI.getPaged(size, page),
     });
 
@@ -59,7 +59,7 @@ export const useSearchLocations = (
     size: number
 ) =>
     useQuery({
-        queryKey: queryKeys.search(name, page, size),
+        queryKey: locationQueryKeys.search(name, page, size),
         queryFn: () => locationsAPI.searchLocations(name, size, page),
         enabled: !!name,
 
@@ -70,7 +70,7 @@ export const useSearchLocations = (
 export const useLocationsForUser = () => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<Location[], Error>({
-        queryKey: [...queryKeys.userList(), loginDetails?.id],
+        queryKey: [...locationQueryKeys.userList(), loginDetails?.id],
         queryFn: async () => {
             const response = await locationsAPI.getLocationsForUser();
             return response;
@@ -80,31 +80,31 @@ export const useLocationsForUser = () => {
 
 export const useLocationsForUserPaged = (page: number, size: number) =>
     useQuery({
-        queryKey: [...queryKeys.userList(), 'paged', page, size],
+        queryKey: [...locationQueryKeys.userList(), 'paged', page, size],
         queryFn: () => locationsAPI.getLocationsforUserPaged(size, page),
     });
 
 export const useLocationIdsForUser = () =>
     useQuery({
-        queryKey: [...queryKeys.userList(), 'ids'],
+        queryKey: [...locationQueryKeys.userList(), 'ids'],
         queryFn: locationsAPI.getLocationIdsForUser
     });
 
 export const useLocationCountByUser = () =>
     useQuery({
-        queryKey: [...queryKeys.userList(), 'count'],
+        queryKey: [...locationQueryKeys.userList(), 'count'],
         queryFn: locationsAPI.countByUser
     });
 
 export const useLocationStats = () =>
     useQuery({
-        queryKey: queryKeys.counts(),
+        queryKey: locationQueryKeys.counts(),
         queryFn: locationsAPI.getCountLocationResource
     });
 
 export const useLocationAccess = (id: number) =>
     useQuery({
-        queryKey: [...queryKeys.detail(id), 'access'],
+        queryKey: [...locationQueryKeys.detail(id), 'access'],
         queryFn: () => locationsAPI.isLocationAccessible(id),
         enabled: !!id
     });
@@ -113,7 +113,7 @@ export const useLocationAccess = (id: number) =>
 // WRITE HOOKS (mutations) with automatic cache invalidation
 // -----------------------------------------------------------------------------
 const invalidateLists = (qc: ReturnType<typeof useQueryClient>) =>
-    qc.invalidateQueries({ queryKey: queryKeys.base });
+    qc.invalidateQueries({ queryKey: locationQueryKeys.base });
 
 export const useCreateLocation = () => {
     const qc = useQueryClient();

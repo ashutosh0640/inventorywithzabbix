@@ -1,18 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { type BareMetalReqDTO, type InterfacesDTO } from '../../../types/requestDto';
-import type { User, Location, BareMetal, Rack, RackSlot } from '../../../types/responseDto';
-import { managementTypeOptions, serverVendors } from '../../../types/selecteOption'
-import { Input } from '../Input'
-import { Select } from '../Select'
-import { useRackSlots } from '../../../features/inventoryQuery/rackQuery';
-import { X, Server, Network, ChevronRight, ChevronLeft, Plus, Users } from 'lucide-react';
+import { type VirtualPlatformReqDTO, type InterfacesDTO } from '../../../types/requestDto';
+import type { User, VirtualPlatform, BareMetal } from '../../../types/responseDto';
+import { virtualizationOptions, cpuCoresOptions, dataUnit, storageTypeOptions } from '../../../types/selecteOption'
+import { Input } from '../Input';
+import { Select } from '../Select';
+import { X, Server, Network, ChevronRight, ChevronLeft, Plus, Users, AppWindowMac } from 'lucide-react';
 
-interface BaremetalFormProps {
+interface VirtualizationFormProps {
     isOpen: boolean;
     onClose: () => void;
-    onSubmit: (equipment: BareMetalReqDTO) => void;
-    server?: BareMetal | null;
-    availableLocations?: Location[];
+    onSubmit: (equipment: VirtualPlatformReqDTO) => void;
+    server: BareMetal | null;
+    virtual?: VirtualPlatform | null;
     availableUsers?: User[];
 }
 
@@ -25,29 +24,30 @@ interface InterfaceProps {
 }
 
 
-export const BaremetalForm: React.FC<BaremetalFormProps> = ({
+export const VirtualizationForm: React.FC<VirtualizationFormProps> = ({
     isOpen,
     onClose,
     onSubmit,
     server,
-    availableLocations,
+    virtual,
     availableUsers = [],
 }) => {
     const [currentStep, setCurrentStep] = useState(1);
-    const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
-    const [selectedRack, setSelectedRack] = useState<Rack | null>(null);
-    const [selectedSlot, setSelectedSlot] = useState<RackSlot | null>(null);
-    const { data: rackSlots } = useRackSlots(selectedRack?.id || null);
-    const [formData, setFormData] = useState<BareMetalReqDTO>({
-        type: 'PHYSICAL_SERVER',
-        management: '',
-        manufacturer: '',
-        modelName: '',
-        serialNumber: '',
+    //const [selectedBaremetal, setSelectedBaremetal] = useState<BareMetal | null>(null);
+    const [formData, setFormData] = useState<VirtualPlatformReqDTO>({
+        hostType: '',
+        type: '',
+        version: '',
         interfaces: [],
-        rackId: 0,
-        rackSlotNumber: 0,
-        userIds: [],
+        cpuModel: '',
+        cpuCores: 0,
+        ramSize: 0,
+        ramSizeUnit: '',
+        storageSize: 0,
+        storageSizeUnit: '',
+        storeageType: '',
+        serverId: 0,
+        usersId: []
     });
 
     const [interfaceList, setInterfaceList] = useState<InterfaceProps[]>([
@@ -60,7 +60,6 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
         }
     ]);
 
-
     const [errors, setErrors] = useState<Record<string, string>>({});
 
     const steps = [
@@ -72,75 +71,78 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
     useEffect(() => {
         if (isOpen) {
             setCurrentStep(1);
-            if (server) {
+            if (virtual) {
                 // Edit mode - populate form with existing server data
                 setFormData({
-                    type: 'PHYSICAL_SERVER',
-                    management: server.management,
-                    manufacturer: server.manufacturer,
-                    modelName: server.modelName,
-                    serialNumber: server.serialNumber,
-                    interfaces: server.interfaces,
-                    rackId: server.rack.id,
-                    rackSlotNumber: server.rackSlotNumber,
-                    userIds: server.user?.map(u => u.id),
+                    hostType: virtual.hostType,
+                    type: virtual.type,
+                    version: virtual.version,
+                    interfaces: virtual.interfaces,
+                    cpuModel: virtual.cpuModel,
+                    cpuCores: virtual.cpuCores,
+                    ramSize: virtual.ramSize,
+                    ramSizeUnit: virtual.ramSizeUnit,
+                    storageSize: virtual.storageSize,
+                    storageSizeUnit: virtual.storageSizeUnit,
+                    storeageType: virtual.storageType,
+                    serverId: virtual.server.id,
+                    usersId: virtual.user?.map(u => u.id),
                 });
-
-                if (server.rack.location) {
-                    setSelectedLocation(availableLocations?.find(l => l == server.rack.location) ?? null)
-                }
-
-
             } else {
                 // Add mode - reset form
                 setFormData({
-                    type: 'PHYSICAL_SERVER',
-                    management: '',
-                    manufacturer: '',
-                    modelName: '',
-                    serialNumber: '',
+                    hostType: 'VIRTUALIZATION',
+                    type: '',
+                    version: '',
                     interfaces: [],
-                    rackId: 0,
-                    rackSlotNumber: 0,
-                    userIds: [],
+                    cpuModel: '',
+                    cpuCores: 0,
+                    ramSize: 0,
+                    ramSizeUnit: '',
+                    storageSize: 0,
+                    storageSizeUnit: '',
+                    storeageType: '',
+                    serverId: server?.id || 0,
+                    usersId: server?.user?.map(u=>u.id)
                 });
             }
             setErrors({});
         }
 
-    }, [isOpen, server]);
+    }, [isOpen, virtual]);
 
     const validateStep = (step: number) => {
         const newErrors: Record<string, string> = {};
 
         if (step === 1) {
-            if (!formData.management.trim()) {
-                newErrors.management = 'Management is required';
+            if (!formData.type.trim()) {
+                newErrors.type = 'Virtualization type is required';
             }
-            if (!formData.manufacturer.trim()) {
-                newErrors.manufacturer = 'Manufacturer is required';
+            if (!formData.version.trim()) {
+                newErrors.version = 'Version is required';
             }
-            if (!formData.modelName.trim()) {
-                newErrors.modelName = 'Model name is required';
+            if (!formData.cpuModel.trim()) {
+                newErrors.cpuModel = 'CPU model is required';
             }
-            if (!formData.serialNumber.trim()) {
-                newErrors.serialNumber = 'Serial number is required';
+            if (!formData.cpuCores) {
+                newErrors.cpuCores = 'CPU core is required';
             }
-            if (!formData.management.trim()) {
-                newErrors.management = 'Management is required';
+            if (!formData.ramSize || formData.ramSize < 1) {
+                newErrors.ramSize = 'Ram size is required and should not zero';
             }
-            if (!selectedLocation) {
-                newErrors.selectedLocation = 'Location is required';
+            if (!formData.ramSizeUnit) {
+                newErrors.ramSizeUnit = 'Ram size Unit is required';
             }
-            if (!formData.rackId) {
-                newErrors.rackId = 'Rack is required';
+            if (!formData.storageSize || formData.storageSize < 1) {
+                newErrors.storageSize = 'Storage size is required and should not zero';
             }
-            if (!formData.rackSlotNumber) {
-                newErrors.rackSlotNumber = 'Rack slot is required';
+            if (!formData.storageSizeUnit) {
+                newErrors.storageSizeUnit = 'Storage size Unit is required';
             }
-            if (formData.rackSlotNumber < 0 || formData.rackSlotNumber > 84 || formData.rackSlotNumber % 2 != 0) {
-                newErrors.rackSlotNumber = 'Slot position must be even number between 0 and 42';
+            if (!formData.storeageType) {
+                newErrors.storeageType = 'Storage type is required';
             }
+
         }
 
         if (step === 2) {
@@ -164,10 +166,27 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
         return Object.keys(newErrors).length === 0;
     };
 
+
+    const handleStorageSize = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = parseInt(e.target.value);
+        console.log("storage size: ", input)
+        if (input) {
+            setFormData(prev => ({ ...prev, storageSize: input }))
+        } else {
+            setFormData(prev => ({ ...prev, storageSize: 0 }))
+        }
+    }
+
+    const handleRamSize = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const input = parseInt(e.target.value);
+        if (input) {
+            setFormData(prev => ({ ...prev, ramSize: input }))
+        } else {
+            setFormData(prev => ({ ...prev, ramSize: 0 }))
+        }
+    }
+
     const handleClose = () => {
-        setSelectedLocation(null)
-        setSelectedRack(null)
-        setSelectedSlot(null)
         onClose();
     }
 
@@ -188,9 +207,9 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
             return;
         }
 
-        const submitData: BareMetalReqDTO = {
+        const submitData: VirtualPlatformReqDTO = {
             ...formData,
-            interfaces: interfaceList.map(i => {
+            interfaces: interfaceList.map(i=>{
                 return {
                     ip: i.ip,
                     gateway: i.gateway,
@@ -296,9 +315,11 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
 
 
     const handleUserToggle = (userId: number) => {
+        console.log("handle user toggle...",userId)
         setFormData(prev => {
-            const current = prev.userIds ?? [];
+            const current = prev.usersId ?? [];
             const isSelected = current.includes(userId);
+            console.log("form data: ", prev)
             return {
                 ...prev,
                 userIds: isSelected ?
@@ -306,44 +327,6 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                     : [...current, userId]
             };
         })
-    }
-
-    const handleLocationChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const locationId = parseInt(e.target.value);
-        if (locationId) {
-            const loc = availableLocations?.find(l => l.id === locationId);
-            if (loc) {
-                setSelectedLocation(loc)
-
-            }
-        }
-    };
-
-    const handleRackChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const rackId = parseInt(e.target.value);
-        if (rackId && selectedLocation) {
-            const rack = selectedLocation.rack?.find(r => r.id === rackId);
-            if (rack) {
-                setSelectedRack(rack);
-                setFormData(prev => ({ ...prev, rackId: rack.id }))
-                console.log("form data rack id: ", formData, "rack: ", rack)
-            }
-        }
-    }
-
-    const handleSlotChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const slotId = parseInt(e.target.value);
-
-        if (selectedRack && slotId) {
-            console.log('handle slot change. rack slots: ', rackSlots, "slot id: ", slotId);
-            const slot = rackSlots?.find(s => s.slotNumber === slotId);
-            console.log('slot: ', slot)
-            if (slot) {
-                setSelectedSlot(slot);
-                setFormData(prev => ({ ...prev, rackSlotNumber: slot.slotNumber }))
-                console.log("form data slot number: ", formData, " slot: ", slot)
-            }
-        }
     }
 
     if (!isOpen) return null;
@@ -354,10 +337,10 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                 {/* Header */}
                 <div className="flex items-center justify-between p-2 border-gray-500 bg-gradient-to-r from-blue-200 to-indigo-300">
                     <div className=" flex items-center">
-                        <Server size={20} className="text-blue-600 mr-3" />
+                        <AppWindowMac size={20} className="text-blue-600 mr-3" />
                         <div>
                             <h2 className="text-md font-semibold text-gray-900">
-                                {server ? 'Edit Baremetal Server' : 'Add New Baremetal Server'}
+                                {virtual ? 'Edit virtual platform' : 'Add New virtual platform'}
                             </h2>
                             <p className="text-xs text-gray-600 mt-1">
                                 Step {currentStep} of {steps.length}: {steps[currentStep - 1]?.title}
@@ -411,15 +394,13 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-
                                     <div>
                                         <Input
-                                            label="Device type *"
+                                            label="Host type *"
                                             id="type"
                                             name="type"
                                             type="text"
-                                            value="PHYSICAL SERVER"
+                                            value="VIRTUALIZATION"
                                             fullWidth
                                             disabled
                                         />
@@ -427,130 +408,128 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
 
                                     <div>
                                         <Select
-                                            label='Select manufacturer *'
-                                            value={formData.manufacturer}
-                                            options={serverVendors}
-                                            error={errors.manufacturer}
+                                            label='Select virtualization type *'
+                                            value={formData.type}
+                                            options={virtualizationOptions}
+                                            error={errors.type}
                                             fullWidth={true}
                                             required
-                                            onChange={(e) => setFormData(prev => ({ ...prev, manufacturer: e }))}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, type: e }))}
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Input
+                                            label="Version *"
+                                            id="version"
+                                            name="version"
+                                            type="text"
+                                            error={errors.version}
+                                            value={formData.version}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, version: e.target.value }))}
+                                            required
+                                            fullWidth
+                                            placeholder="Enter virtualization version (e.g., Vmware ESXi 6.5.0)"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Input
+                                            label="CPU Model *"
+                                            id="cpuModel"
+                                            name="cpuModel"
+                                            type="text"
+                                            error={errors.cpuModel}
+                                            value={formData.cpuModel}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, cpuModel: e.target.value }))}
+                                            required
+                                            fullWidth
+                                            placeholder="Enter cpu model (e.g.  Intel(R) Xeon(R) Bronze 3104 CPU @ 1.70GHz)"
                                         />
                                     </div>
 
                                     <div>
                                         <Select
-                                            label='Select management *'
-                                            value={formData.management}
-                                            options={managementTypeOptions}
-                                            error={errors.management}
+                                            label='Select CPU Core *'
+                                            value={formData.cpuCores}
+                                            options={cpuCoresOptions}
+                                            error={errors.cpuCores}
                                             fullWidth={true}
                                             required
-                                            onChange={(e) => setFormData(prev => ({ ...prev, management: e }))}
+                                            onChange={(e) => setFormData(prev => ({ ...prev, cpuCores: parseInt(e) }))}
                                         />
                                     </div>
+
+                                    <div>
+                                        <Input
+                                            label="RAM Size *"
+                                            id="ramSize"
+                                            name="ramSize"
+                                            type="text"
+                                            error={errors.ramSize}
+                                            value={formData.ramSize}
+                                            onChange={(e) => handleRamSize(e)}
+                                            required
+                                            fullWidth={false}
+                                            placeholder="Enter RAM size (e.g.  16 GB)"
+                                        />
+                                    </div>
+
+                                    <div>
+                                        <Select
+                                            label='Select RAM Unit *'
+                                            value={formData.ramSizeUnit}
+                                            options={dataUnit}
+                                            error={errors.ramSizeUnit}
+                                            fullWidth={false}
+                                            required
+                                            onChange={(e) => setFormData(prev => ({ ...prev, ramSizeUnit: e }))}
+                                        />
+                                    </div>
+
+
 
 
                                     <div>
                                         <Input
-                                            label="Model name *"
-                                            id="modelName"
-                                            name="modelName"
+                                            label="Storage Size *"
+                                            id="storageSize"
+                                            name="storageSize"
                                             type="text"
-                                            error={errors.modelName}
-                                            value={formData.modelName}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, modelName: e.target.value }))}
+                                            error={errors.storageSize}
+                                            value={formData.storageSize}
+                                            onChange={(e) => handleStorageSize(e)}
                                             required
-                                            fullWidth
-                                            placeholder="Enter model name (e.g., PowerEdge R740)"
-                                        />
-                                    </div>
-
-
-
-                                    <div>
-                                        <Input
-                                            label="Serial number *"
-                                            id="serialNumber"
-                                            name="serialNumber"
-                                            type="text"
-                                            error={errors.serialNumber}
-                                            value={formData.serialNumber}
-                                            onChange={(e) => setFormData(prev => ({ ...prev, serialNumber: e.target.value }))}
-                                            required
-                                            fullWidth
-                                            placeholder="Enter Serial number (e.g.  DYL92U5)"
+                                            fullWidth={false}
+                                            placeholder="Enter Storage size (e.g. 4 TB)"
                                         />
                                     </div>
 
                                     <div>
-                                        <label htmlFor="rackId" className="block text-xs max-w-fit font-medium text-gray-700 mb-2">
-                                            Select Location *
-                                        </label>
-                                        <select
-                                            id="locationselect"
-                                            value={selectedLocation?.id}
-                                            onChange={handleLocationChange}
-                                            className={`w-full p-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.rackId ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                        >
-                                            <option value={0}>Select a Location</option>
-                                            {availableLocations?.map(loc => (
-                                                <option key={loc.id} value={loc.id}>
-                                                    {loc.name} ( {loc.rack?.length ?? 0} racks.)
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.selectedLocation && (
-                                            <p className="mt-1 text-sm text-red-500">{errors.selectedLocation}</p>
-                                        )}
+                                        <Select
+                                            label='Select Storage Unit *'
+                                            value={formData.storageSizeUnit}
+                                            options={dataUnit}
+                                            error={errors.storageSizeUnit}
+                                            fullWidth={false}
+                                            required
+                                            onChange={(e) => setFormData(prev => ({ ...prev, storageSizeUnit: e }))}
+                                        />
                                     </div>
 
-                                    <div>
-                                        <label htmlFor="rackId" className="block text-xs max-w-fit font-medium text-gray-700 mb-2">
-                                            Select Rack *
-                                        </label>
-                                        <select
-                                            id="rackId"
-                                            value={selectedRack?.id}
-                                            onChange={handleRackChange}
-                                            className={`w-full p-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.rackId ? 'border-red-300' : 'border-gray-300'
-                                                }`}
-                                        >
-                                            <option value={0}>Select a rack</option>
-                                            {selectedLocation?.rack?.map(rack => (
-                                                <option key={rack.id} value={rack.id}>
-                                                    {rack.name} ( {rack.location.name} )
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.rackId && (
-                                            <p className="mt-1 text-sm text-red-500">{errors.rackId}</p>
-                                        )}
-                                    </div>
 
                                     <div>
-                                        <label htmlFor="rackId" className="block text-xs max-w-fit font-medium text-gray-700 mb-2">
-                                            Select slot *
-                                        </label>
-                                        <select
-                                            id="rackId"
-                                            value={selectedSlot?.slotNumber}
-                                            onChange={handleSlotChange}
-                                            className={`w-full p-2 text-xs border rounded-lg focus:outline-none
-                                                focus:ring-2 focus:ring-blue-500 focus:border-transparent 
-                                                ${errors.rackId ? 'border-red-300' : 'border-gray-300'}`}
-                                        >
-                                            <option value={0}>Select a slot</option>
-                                            {rackSlots?.map(slot => (
-                                                <option disabled={slot.status == 'OCCUPIED'} key={slot.slotNumber} value={slot.slotNumber}>
-                                                    {slot.slotNumber} - {slot.status}
-                                                </option>
-                                            ))}
-                                        </select>
-                                        {errors.rackSlotNumber && (
-                                            <p className="mt-1 text-sm text-red-500">{errors.rackSlotNumber}</p>
-                                        )}
+                                        <Select
+                                            label='Select Storage type *'
+                                            value={formData.storeageType}
+                                            options={storageTypeOptions}
+                                            error={errors.storeageType}
+                                            fullWidth={false}
+                                            required
+                                            onChange={(e) => setFormData(prev => ({ ...prev, storeageType: e }))}
+                                        />
                                     </div>
+
                                 </div>
 
                                 {/* Users */}
@@ -567,7 +546,7 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                             >
                                                 <input
                                                     type="checkbox"
-                                                    checked={!!formData.userIds?.includes(user.id)}
+                                                    checked={!!formData.usersId?.includes(user.id)}
                                                     onChange={() => handleUserToggle(user.id)}
                                                     className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                                                 />
@@ -584,10 +563,10 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                         ))}
                                     </div>
                                     {errors.users && (
-                                        <p className="mt-1 text-sm text-red-500">{errors.users}</p>
+                                        <p className="mt-1 text-sm text-red-600">{errors.users}</p>
                                     )}
                                     <p className="mt-1 text-xs text-gray-500">
-                                        Selected: {formData.userIds?.length} user{formData.userIds?.length !== 1 ? 's' : ''}
+                                        Selected: {formData.usersId?.length} user{formData.usersId?.length !== 1 ? 's' : ''}
                                     </p>
                                 </div>
                             </div>
@@ -612,6 +591,7 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                 </div>
 
                                 <div className="space-y-6">
+                                    
                                     {interfaceList.map((iface, index) => (
                                         // Use iface.id as the key for stable rendering
                                         <div key={iface.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 relative">
@@ -641,8 +621,8 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                                     onChange={(e) => updateInterface(iface.id, 'ip', e.target.value)}
                                                     onBlur={() => validateField(iface, 'ip')} // Validate on blur
                                                     className={`w-full p-2 text-xs border rounded-md focus:outline-none
-                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                                        ${errors[`interface_${iface.id}_ip`] ? 'border-red-500' : 'border-gray-300'}`}
+                                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                    ${errors[`interface_${iface.id}_ip`] ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="192.168.1.100"
                                                 />
                                                 {errors[`interface_${iface.id}_ip`] && (
@@ -662,8 +642,8 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                                     onChange={(e) => updateInterface(iface.id, 'gateway', e.target.value)}
                                                     onBlur={() => validateField(iface, 'gateway')} // Validate on blur
                                                     className={`w-full p-2 text-xs border rounded-md focus:outline-none
-                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                                        ${errors[`interface_${iface.id}_gateway`] ? 'border-red-500' : 'border-gray-300'}`}
+                                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                    ${errors[`interface_${iface.id}_gateway`] ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="192.168.1.1"
                                                 />
                                                 {errors[`interface_${iface.id}_gateway`] && (
@@ -683,8 +663,8 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                                     onChange={(e) => updateInterface(iface.id, 'primaryDns', e.target.value)}
                                                     onBlur={() => validateField(iface, 'primaryDns')}
                                                     className={`w-full p-2 text-xs border rounded-md focus:outline-none
-                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                                        ${errors[`interface_${iface.id}_primaryDns`] ? 'border-red-500' : 'border-gray-300'}`}
+                                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                    ${errors[`interface_${iface.id}_primaryDns`] ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="8.8.8.8"
                                                 />
                                                 {errors[`interface_${iface.id}_primaryDns`] && (
@@ -704,8 +684,8 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                                     onChange={(e) => updateInterface(iface.id, 'secondaryDns', e.target.value)}
                                                     onBlur={() => validateField(iface, 'secondaryDns')}
                                                     className={`w-full p-2 text-xs border rounded-md focus:outline-none
-                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                                        ${errors[`interface_${iface.id}_secondaryDns`] ? 'border-red-500' : 'border-gray-300'}`}
+                                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                    ${errors[`interface_${iface.id}_secondaryDns`] ? 'border-red-500' : 'border-gray-300'}`}
                                                     placeholder="8.8.4.4"
                                                 />
                                                 {errors[`interface_${iface.id}_secondaryDns`] && (
@@ -764,7 +744,7 @@ export const BaremetalForm: React.FC<BaremetalFormProps> = ({
                                     type="submit"
                                     className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                                 >
-                                    {server ? 'Update Server' : 'Create Server'}
+                                    {virtual ? 'Update virtual platform' : 'Create virtual platform'}
                                 </button>
                             )}
                         </div>

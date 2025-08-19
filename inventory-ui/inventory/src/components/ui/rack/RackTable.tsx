@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Rack } from '../../../types/responseDto';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModel';
-import { Edit, Trash2, Server, Network } from 'lucide-react';
+import { Edit, Trash2, Server, Network, Plus } from 'lucide-react';
 
 interface RackTableProps {
   racks: Rack[];
@@ -11,6 +11,13 @@ interface RackTableProps {
 }
 
 export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, onClick }) => {
+
+  const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
+  const rackEditPermission = loginDetails?.role.includes('RACK_EDIT_RACK') || false;
+  const racktDeletePermission = loginDetails?.role.includes('RACK_DELETE_RACK') || false;
+  const serverAddPermission = loginDetails?.role.includes('BAREMETAL_WRITE_BAREMETAL') || false;
+  const rackViewPermission = !loginDetails?.role.includes('RACK_WRITE_RACK') && !loginDetails?.role.includes('RACK_EDIT_RACK') && !loginDetails?.role.includes('RACK_DELETE_RACK') || false;
+
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [locationToDelete, setLocationToDelete] = useState<number | null>(null);
@@ -39,22 +46,22 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Rack
               </th>
-              <th className="px-6 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Utilization
               </th>
-              <th className="px-6 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Equipment
               </th>
-              <th className="px-6 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Created
               </th>
-              <th className="px-6 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Users
               </th>
-              <th className="px-6 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="p-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -62,6 +69,7 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
           <tbody className="divide-y divide-gray-200">
             {racks?.map((rack) => {
               const utilizationPercentage = Math.round((rack.occupiedSlot / rack.totalSlot) * 100);
+              console.log("rack: ", rack)
 
               return (
                 <tr
@@ -69,7 +77,7 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
                   className="hover:bg-gray-50 transition-colors cursor-pointer"
                   onClick={() => onClick(rack.id)}
                 >
-                  <td className="px-6 py-2">
+                  <td className="p-2">
                     <div className="flex items-center">
                       <div>
                         <h3 className="text-xs font-semibold text-gray-900">
@@ -79,7 +87,7 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-2">
+                  <td className="p-2">
                     <div className="space-y-1">
                       <div className="flex items-center space-x-2">
                         <span className="text-xsm font-medium text-gray-900">
@@ -103,7 +111,7 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
                       </div>
                     </div>
                   </td>
-                  <td className="px-6 py-2">
+                  <td className="p-2">
                     <div className="flex items-center space-x-4 text-xs">
                       <div className="flex items-center text-blue-600">
                         <Server size={12} className="mr-1" />
@@ -116,12 +124,12 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
                     </div>
                   </td>
 
-                  <td className="px-1 py-2">
+                  <td className="p-2">
                     <div className="flex items-center text-xs text-gray-600">
                       {rack.createdAt.split('T')[0]}
                     </div>
                   </td>
-                  <td className="px-6 py-2">
+                  <td className="p-2">
                     <div className="flex items-center">
                       <div className="flex -space-x-1 mr-2">
                         {rack.user?.slice(0, 3).map((user) => (
@@ -144,28 +152,41 @@ export const RackTable: React.FC<RackTableProps> = ({ racks, onEdit, onDelete, o
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-2">
-                    <div className="flex items-left justify-end space-x-1">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent onClick for <tr> from firing
-                          onEdit(rack);
-                        }}
-                        className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit rack"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation(); // Prevent onClick for <tr> from firing
-                          openModal(rack.id);
-                        }}
-                        className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete rack"
-                      >
-                        <Trash2 size={16} />
-                      </button>
+                  <td className=" p-2">
+                    <div className="flex items-left justify-center space-x-1">
+                      {rackEditPermission && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent onClick for <tr> from firing
+                            onEdit(rack);
+                          }}
+                          className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          title="Edit rack"
+                        >
+                          <Edit size={16} />
+                        </button>)}
+                      {racktDeletePermission && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation(); // Prevent onClick for <tr> from firing
+                            openModal(rack.id);
+                          }}
+                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          title="Delete rack"
+                        >
+                          <Trash2 size={16} />
+                        </button>)}
+                      {serverAddPermission && (
+                        <button
+                          //onClick={() => addRack(location)}
+                          className="p-2 text-gray-400 hover:text-green-600 hover:bg-green-50 rounded-lg transition-colors"
+                          title={`Add Device`}
+                        >
+                          <Plus size={16} />
+                        </button>)}
+                      {rackViewPermission && (
+                        <p className=' text-gray-500 text-xs'>View only</p>
+                      )}
                     </div>
                   </td>
                 </tr>

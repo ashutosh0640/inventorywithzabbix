@@ -2,11 +2,13 @@ import { configureStore } from '@reduxjs/toolkit';
 
 import authReducer from './authSlice';
 import appReducer from './aapSlice';
+import zabbixServerReducer from './zabbix/zabbixServerSlice';
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     app: appReducer,
+    zabbixServer: zabbixServerReducer,
   },
 });
 

@@ -16,13 +16,6 @@ const statusColors: Record<string, string> = {
 };
 
 export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDelete }) => {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
-  };
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg transition-all duration-200 group">
@@ -52,7 +45,7 @@ export const ProjectCard: React.FC<ProjectCardProps> = ({ project, onEdit, onDel
           </button>
           <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
             <MoreHorizontal size={16} />
-          </button>
+          </button> 
         </div>
       </div>
 

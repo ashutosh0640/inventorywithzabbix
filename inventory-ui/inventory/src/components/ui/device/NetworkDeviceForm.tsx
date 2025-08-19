@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { NetworkDevicReqDTO, InterfacesDTO, HostType } from '../../../types/requestDto';
+import type { NetworkDeviceReqDTO, InterfacesDTO, HostType } from '../../../types/requestDto';
 import type { User, Location, NetworkDevices, Rack } from '../../../types/responseDto';
 import { useRackSlots } from '../../../features/inventoryQuery/rackQuery';
 import { X, Network, HardDrive, MapPin, Router, Shield, Wifi, Zap, ChevronRight, ChevronLeft, Settings, Plus, Trash2, Users } from 'lucide-react';
@@ -7,10 +7,18 @@ import { X, Network, HardDrive, MapPin, Router, Shield, Wifi, Zap, ChevronRight,
 interface NetworkDeviceFormProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (equipment: NetworkDevicReqDTO) => void;
+  onSubmit: (equipment: NetworkDeviceReqDTO) => void;
   device?: NetworkDevices | null;
   availableLocations?: Location[];
   availableUsers?: User[];
+}
+
+interface InterfaceProps {
+  id: string;
+  ip: string;
+  gateway: string;
+  primaryDns: string;
+  secondaryDns: string;
 }
 
 const hostTypes: HostType[] = [
@@ -55,12 +63,12 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
   const [racklist, setRacklist] = useState<Rack[]>([]);
   const [selectedRack, setSelectedRack] = useState<number>(0);
   const { data: rackSlots } = useRackSlots(selectedRack);
-  const [formData, setFormData] = useState<Omit<NetworkDevicReqDTO, 'interfaces'>>({
-    name: '',
+  const [formData, setFormData] = useState<NetworkDeviceReqDTO>({
     type: '',
     manufacturer: '',
     model: '',
     serialNumber: '',
+    interfaces: [],
     osVersion: '',
     numberOfPort: 0,
     rackId: 0,
@@ -68,8 +76,9 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
     userIds: []
   });
 
-  const [interfaces, setInterfaces] = useState<InterfacesDTO[]>([
+  const [interfaceList, setInterfaceList] = useState<InterfaceProps[]>([
     {
+      id: crypto.randomUUID(),
       ip: '',
       gateway: '',
       primaryDns: '',
@@ -91,61 +100,32 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
       if (device) {
         // Edit mode - populate form with existing device data
         setFormData({
-          name: device.name,
           type: device.type,
           manufacturer: device.manufacturer,
           model: device.model,
           serialNumber: device.serialNumber,
+          interfaces: device.interfaces,
           osVersion: device.osVersion,
           numberOfPort: device.numberOfPort,
           rackId: device.rack.id,
           rackSlotNumber: device.rackSlotNumber,
           userIds: device.users.map(u => u.id),
         });
-        // Reset interfaces for edit mode
-        {
-          device.interfaces.length > 0 ? (
-            setInterfaces(device?.interfaces.map(i => ({
-              ip: i.ip || '',
-              gateway: i.gateway || '',
-              primaryDns: i.primaryDns || '',
-              secondaryDns: i.secondaryDns || ''
-            })))
-          ) : (
-            setInterfaces([
-              {
-                ip: '',
-                gateway: '',
-                primaryDns: '',
-                secondaryDns: ''
-              }
-            ])
-          )
-        }
 
       } else {
         // Add mode - reset form
         setFormData({
-          name: '',
           type: '',
           manufacturer: '',
           model: '',
           serialNumber: '',
+          interfaces: [],
           osVersion: '',
           numberOfPort: 0,
           rackId: 0,
           rackSlotNumber: 0,
           userIds: []
         });
-        // Reset interfaces for edit mode
-        setInterfaces([
-          {
-            ip: '',
-            gateway: '',
-            primaryDns: '8.8.8.8',
-            secondaryDns: '8.8.4.4'
-          }
-        ]);
       }
       setErrors({});
     }
@@ -155,9 +135,6 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
     const newErrors: Record<string, string> = {};
 
     if (step === 1) {
-      if (!formData.name.trim()) {
-        newErrors.name = 'Server name is required';
-      }
       if (!formData.type.trim()) {
         newErrors.type = 'Host type is required';
       }
@@ -185,7 +162,7 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
     }
 
     if (step === 2) {
-      interfaces.forEach((iface, index) => {
+      interfaceList.forEach((iface, index) => {
         if (iface.ip && !/^(\d{1,3}\.){3}\d{1,3}$/.test(iface.ip)) {
           newErrors[`interface_${index}_ip`] = 'Please enter a valid IP address';
         }
@@ -222,9 +199,16 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
       return;
     }
 
-    const submitData: NetworkDevicReqDTO = {
+    const submitData: NetworkDeviceReqDTO = {
       ...formData,
-      interfaces: interfaces.map(({ ...iface }) => iface),
+      interfaces: interfaceList.map(i => {
+        return {
+          ip: i.ip,
+          gateway: i.gateway,
+          primaryDns: i.primaryDns,
+          secondaryDns: i.secondaryDns,
+        }
+      }),
     };
 
     onSubmit(submitData);
@@ -232,25 +216,93 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
   };
 
   const addInterface = () => {
-    const newInterface: InterfacesDTO = {
-      ip: '',
-      gateway: '',
-      primaryDns: '',
-      secondaryDns: '',
-    };
-    setInterfaces([...interfaces, newInterface]);
+    setInterfaceList(prevInterfaces => [
+      ...prevInterfaces,
+      {
+        id: crypto.randomUUID(), // Assign a new unique ID
+        ip: '',
+        gateway: '',
+        primaryDns: '',
+        secondaryDns: ''
+      }
+    ]);
   };
 
-  const removeInterface = (ip: string) => {
-    if (interfaces.length > 1) {
-      setInterfaces(interfaces.filter(iface => iface.ip !== ip));
+  const removeInterface = (id: string) => {
+    setInterfaceList(prevInterfaces => prevInterfaces.filter(iface => iface.id !== id));
+    // Also remove any associated errors
+    setErrors(prevErrors => {
+      const newErrors = { ...prevErrors };
+      for (const key in newErrors) {
+        if (key.startsWith(`interface_${id}_`)) {
+          delete newErrors[key];
+        }
+      }
+      return newErrors;
+    });
+  };
+
+
+  const updateInterface = (id: string, field: keyof InterfacesDTO, value: string) => {
+    setInterfaceList(prevInterfaces =>
+      prevInterfaces.map(iface =>
+        iface.id === id ? { ...iface, [field]: value } : iface
+      )
+    );
+    // Clear the error for this specific field when it's being updated
+    setErrors(prevErrors => {
+      const newErrors = { ...prevErrors };
+      delete newErrors[`interface_${id}_${field}`];
+      return newErrors;
+    });
+  };
+
+
+  const validateField = (iface: InterfaceProps, field: keyof InterfaceProps) => {
+    let isValid = true;
+    let errorMessage = '';
+
+    switch (field) {
+      case 'ip':
+        // Simple IP regex for demonstration
+        const ipRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        if (!iface.ip || !ipRegex.test(iface.ip)) {
+          isValid = false;
+          errorMessage = 'Invalid IP address format.';
+        }
+        break;
+      case 'gateway':
+        const gatewayRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        if (!iface.gateway || !gatewayRegex.test(iface.gateway)) {
+          isValid = false;
+          errorMessage = 'Invalid Gateway format.';
+        }
+        break;
+      case 'primaryDns':
+      case 'secondaryDns':
+        const dnsRegex = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
+        if (iface[field] && !dnsRegex.test(iface[field])) { // DNS can be optional but if present, must be valid
+          isValid = false;
+          errorMessage = 'Invalid DNS format.';
+        }
+        break;
+      default:
+        break;
     }
-  };
 
-  const updateInterface = (ip: string, field: keyof InterfacesDTO, value: string) => {
-    setInterfaces(interfaces.map(iface =>
-      iface.ip === ip ? { ...iface, [field]: value } : iface
-    ));
+    if (!isValid) {
+      setErrors(prevErrors => ({
+        ...prevErrors,
+        [`interface_${iface.id}_${field}`]: errorMessage
+      }));
+    } else {
+      setErrors(prevErrors => {
+        const newErrors = { ...prevErrors };
+        delete newErrors[`interface_${iface.id}_${field}`];
+        return newErrors;
+      });
+    }
+    return isValid;
   };
 
   const handleUserToggle = (userId: number) => {
@@ -353,23 +405,6 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                      Device Name *
-                    </label>
-                    <input
-                      type="text"
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                      className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? 'border-red-300' : 'border-gray-300'
-                        }`}
-                      placeholder="Enter server name (e.g., Web Server 01)"
-                    />
-                    {errors.name && (
-                      <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                    )}
-                  </div>
 
                   <div>
                     <label htmlFor="rackId" className="block text-sm font-medium text-gray-700 mb-2">
@@ -552,8 +587,8 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
                     >
                       <option value={0}>Select a slot</option>
                       {rackSlots?.map(slot => (
-                        <option disabled={slot.status == 'OCCUPIED'} key={slot.slot} value={slot.slot}>
-                          {slot.slot} - {slot.status}
+                        <option disabled={slot.status == 'OCCUPIED'} key={slot.slotNumber} value={slot.slotNumber}>
+                          {slot.slotNumber} - {slot.status}
                         </option>
                       ))}
                     </select>
@@ -622,90 +657,105 @@ export const NetworkDeviceForm: React.FC<NetworkDeviceFormProps> = ({
                 </div>
 
                 <div className="space-y-6">
-                  {interfaces.map((iface, index) => (
-                    <div key={iface.ip} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <div className="flex items-center justify-between mb-4">
-                        <h4 className="text-md font-medium text-gray-900">Interface {index + 1}</h4>
-                        {interfaces.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => removeInterface(iface.ip!)}
-                            className="p-1 text-red-600 hover:bg-red-50 rounded transition-colors"
-                            title="Remove interface"
-                          >
-                            <Trash2 size={16} />
-                          </button>
+                  {interfaceList.map((iface, index) => (
+                    // Use iface.id as the key for stable rendering
+                    <div key={iface.id} className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 border border-gray-200 rounded-lg bg-gray-50 relative">
+                      {/* Remove button for interfaces (except if only one remains) */}
+                      {interfaceList.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeInterface(iface.id)}
+                          className="absolute top-2 right-2 p-1 text-red-500 hover:text-red-700 rounded-full focus:outline-none focus:ring-2 focus:ring-red-500"
+                          aria-label="Remove interface"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm6 0a1 1 0 01-2 0v6a1 1 0 112 0V8z" clipRule="evenodd" />
+                          </svg>
+                        </button>
+                      )}
+
+                      {/* IP Address Input */}
+                      <div>
+                        <label htmlFor={`ip-${iface.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                          IP Address
+                        </label>
+                        <input
+                          type="text"
+                          id={`ip-${iface.id}`} // Unique ID for label association
+                          value={iface.ip}
+                          onChange={(e) => updateInterface(iface.id, 'ip', e.target.value)}
+                          onBlur={() => validateField(iface, 'ip')} // Validate on blur
+                          className={`w-full p-2 text-xs border rounded-md focus:outline-none
+                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                        ${errors[`interface_${iface.id}_ip`] ? 'border-red-500' : 'border-gray-300'}`}
+                          placeholder="192.168.1.100"
+                        />
+                        {errors[`interface_${iface.id}_ip`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`interface_${iface.id}_ip`]}</p>
                         )}
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            IP Address
-                          </label>
-                          <input
-                            type="text"
-                            value={iface.ip}
-                            onChange={(e) => updateInterface(iface.ip!, 'ip', e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[`interface_${index}_ip`] ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                            placeholder="192.168.1.100"
-                          />
-                          {errors[`interface_${index}_ip`] && (
-                            <p className="mt-1 text-sm text-red-600">{errors[`interface_${index}_ip`]}</p>
-                          )}
-                        </div>
+                      {/* Gateway Input */}
+                      <div>
+                        <label htmlFor={`gateway-${iface.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                          Gateway
+                        </label>
+                        <input
+                          type="text"
+                          id={`gateway-${iface.id}`} // Unique ID for label association
+                          value={iface.gateway}
+                          onChange={(e) => updateInterface(iface.id, 'gateway', e.target.value)}
+                          onBlur={() => validateField(iface, 'gateway')} // Validate on blur
+                          className={`w-full p-2 text-xs border rounded-md focus:outline-none
+                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                        ${errors[`interface_${iface.id}_gateway`] ? 'border-red-500' : 'border-gray-300'}`}
+                          placeholder="192.168.1.1"
+                        />
+                        {errors[`interface_${iface.id}_gateway`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`interface_${iface.id}_gateway`]}</p>
+                        )}
+                      </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Gateway
-                          </label>
-                          <input
-                            type="text"
-                            value={iface.gateway}
-                            onChange={(e) => updateInterface(iface.ip!, 'gateway', e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[`interface_${index}_gateway`] ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                            placeholder="192.168.1.1"
-                          />
-                          {errors[`interface_${index}_gateway`] && (
-                            <p className="mt-1 text-sm text-red-600">{errors[`interface_${index}_gateway`]}</p>
-                          )}
-                        </div>
+                      {/* Primary DNS Input */}
+                      <div>
+                        <label htmlFor={`primaryDns-${iface.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                          Primary DNS
+                        </label>
+                        <input
+                          type="text"
+                          id={`primaryDns-${iface.id}`}
+                          value={iface.primaryDns}
+                          onChange={(e) => updateInterface(iface.id, 'primaryDns', e.target.value)}
+                          onBlur={() => validateField(iface, 'primaryDns')}
+                          className={`w-full p-2 text-xs border rounded-md focus:outline-none
+                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                        ${errors[`interface_${iface.id}_primaryDns`] ? 'border-red-500' : 'border-gray-300'}`}
+                          placeholder="8.8.8.8"
+                        />
+                        {errors[`interface_${iface.id}_primaryDns`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`interface_${iface.id}_primaryDns`]}</p>
+                        )}
+                      </div>
 
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Primary DNS
-                          </label>
-                          <input
-                            type="text"
-                            value={iface.primaryDns}
-                            onChange={(e) => updateInterface(iface.ip!, 'primaryDns', e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[`interface_${index}_primaryDns`] ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                            placeholder="8.8.8.8"
-                          />
-                          {errors[`interface_${index}_primaryDns`] && (
-                            <p className="mt-1 text-sm text-red-600">{errors[`interface_${index}_primaryDns`]}</p>
-                          )}
-                        </div>
-
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Secondary DNS
-                          </label>
-                          <input
-                            type="text"
-                            value={iface.secondaryDns}
-                            onChange={(e) => updateInterface(iface.ip!, 'secondaryDns', e.target.value)}
-                            className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors[`interface_${index}_secondaryDns`] ? 'border-red-300' : 'border-gray-300'
-                              }`}
-                            placeholder="8.8.4.4"
-                          />
-                          {errors[`interface_${index}_secondaryDns`] && (
-                            <p className="mt-1 text-sm text-red-600">{errors[`interface_${index}_secondaryDns`]}</p>
-                          )}
-                        </div>
+                      {/* Secondary DNS Input */}
+                      <div>
+                        <label htmlFor={`secondaryDns-${iface.id}`} className="block text-sm font-medium text-gray-700 mb-2">
+                          Secondary DNS
+                        </label>
+                        <input
+                          type="text"
+                          id={`secondaryDns-${iface.id}`}
+                          value={iface.secondaryDns}
+                          onChange={(e) => updateInterface(iface.id, 'secondaryDns', e.target.value)}
+                          onBlur={() => validateField(iface, 'secondaryDns')}
+                          className={`w-full p-2 text-xs border rounded-md focus:outline-none
+                                        focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                                        ${errors[`interface_${iface.id}_secondaryDns`] ? 'border-red-500' : 'border-gray-300'}`}
+                          placeholder="8.8.4.4"
+                        />
+                        {errors[`interface_${iface.id}_secondaryDns`] && (
+                          <p className="mt-1 text-sm text-red-600">{errors[`interface_${iface.id}_secondaryDns`]}</p>
+                        )}
                       </div>
                     </div>
                   ))}

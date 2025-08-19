@@ -1,12 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useProjects, useCreateProject, useUpdateProjectBUser, useDeleteProject } from '../features/inventoryQuery/projectQuery';
 import { useUsers } from '../features/inventoryQuery/userQuery';
 import { useLocations } from '../features/inventoryQuery/locationQuery';
-import type { Project, Location, User } from '../types/responseDto';
+import { useCreateZabbixServer } from '../features/zabbixQuery/zabbixServerQuery'
+import type { Project } from '../types/responseDto';
 import type { ProjectReqDTO } from '../types/requestDto';
 import { ProjectCard } from '../components/ui/project/ProjectCard';
 import { ProjectTable } from '../components/ui/project/ProjectTable';
 import { ProjectForm } from '../components/ui/project/ProjectForm';
+import { ZabbixServerForm } from '../components/ui/project/ZabbixServerForm';
 import { AlertMessage } from '../components/ui/AlertMessage';
 import {
     Grid3X3,
@@ -15,13 +17,14 @@ import {
     Search,
     SortAsc
 } from 'lucide-react';
+import type { ZabbixServerReqDTO } from '../types/zabbix';
 
 type ViewMode = 'cards' | 'table';
 type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 const ProjectPage: React.FC = () => {
 
-
+    const loginDetails = JSON.parse(sessionStorage.getItem('loginDetails') || 'null');
     const [alertMessage, setAlertMessage] = useState<string | null>(null);
     const [alertType, setAlertType] = useState<AlertType | null>(null);
 
@@ -33,13 +36,14 @@ const ProjectPage: React.FC = () => {
     const { mutate: createProject } = useCreateProject();
     const { mutate: updateProject } = useUpdateProjectBUser();
     const { mutate: deleteProject } = useDeleteProject();
+    const { mutate: createZabbixServer } = useCreateZabbixServer();
 
-    const [users, setUsers] = useState<User[]>(user || []);
-    const [locations, setLocations] = useState<Location[]>(location || []);
     const [viewMode, setViewMode] = useState<ViewMode>('table');
     const [searchTerm, setSearchTerm] = useState('');
-    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isFormOpen, setIsFormOpen] = useState<boolean>(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
+
+    const [isZabbixFormOpen, setIsZabbixFormOpen] = useState<boolean>(false);
 
     // Filter projects based on search and status
     const filteredProjects = project.filter(p => {
@@ -56,40 +60,37 @@ const ProjectPage: React.FC = () => {
     const handleDelete = (projectId: number) => {
         deleteProject(projectId, {
             onSuccess: () => {
-                //setProjects(projects.filter(l => l.id !== projectId));
                 setAlertType('success');
                 setAlertMessage('Project deleted successfully.');
             },
-            onError: (error) => {
-                console.error(error.message);
+            onError: () => {
                 setAlertType('error')
                 setAlertMessage(`Failed to delete location.`);
             },
         });
-        setTimeout(() => {
-            setAlertType(null);
-            setAlertMessage(null);
-        }, 3000);
     };
 
     const handleAddProject = () => {
         setIsFormOpen(true);
     };
 
+    const handleAddZabbix = (project: Project) => {
+        setEditingProject(project);
+        setIsZabbixFormOpen(true);
+    }
+
     const handleFormSubmit = (projectData: ProjectReqDTO) => {
         if (editingProject) {
             // Update existing project
-            console.log('Updating project:', projectData);
             updateProject({
                 id: editingProject.id,
                 dto: projectData
             }, {
                 onSuccess: (response) => {
-                    //setProjects(projects.map(project => project.id === response.id ? response : project));
                     setAlertType('success');
                     setAlertMessage(`Project ${response.name} updated successfully.`);
                 },
-                onError: (error) => {
+                onError: () => {
                     setAlertType('error');
                     setAlertMessage('Failed to update project.');
                 }
@@ -99,37 +100,47 @@ const ProjectPage: React.FC = () => {
             // Add new project
             createProject(projectData, {
                 onSuccess: (response) => {
-                    //setProjects([...projects, response]);
                     setAlertType('success');
                     setAlertMessage(`Project ${response.name} created successfully.`);
                 },
                 onError: (error) => {
                     console.error('Error creating project:', error);
                     setAlertType('error');
-                    setAlertMessage('Failed to update project.');
+                    setAlertMessage('Failed to create project.');
                 }
             });
-
         }
         setIsFormOpen(false);
         setEditingProject(null)
-        setTimeout(() => {
-            setAlertType(null);
-            setAlertMessage(null);
-        }, 3000);
     };
+
+    const handleZabbixFormSubmit = (dto: ZabbixServerReqDTO) => {
+        console.log("zabbix form data: ", dto)
+        createZabbixServer(dto), {
+            onSuccess: () => {
+                setAlertType('success');
+                setAlertMessage(`Zabbix server created successfully.`);
+            },
+            onError: () => {
+                setAlertType('error');
+                setAlertMessage('Failed to create zabbix server.');
+            }
+        }
+        setIsZabbixFormOpen(false);
+        setEditingProject(null)
+
+    }
 
     const handleFormClose = () => {
         setIsFormOpen(false);
         setEditingProject(null);
     };
 
-    useEffect(() => {
-        setUsers(user || []);
-        setLocations(location || []);
-        console.log("Project: ", project);
-        console.log("Filtered projects: ", filteredProjects);
-    }, [ project, filteredProjects]);
+    const handleZabbixFormClose = () => {
+        setIsZabbixFormOpen(false);
+
+    }
+
 
     return (
         <div className="min-h-fit bg-gray-50">
@@ -143,13 +154,16 @@ const ProjectPage: React.FC = () => {
                                 Manage and track your project portfolio
                             </p>
                         </div>
+
+                        { loginDetails?.role.includes('PROJECT_WRITE_PROJECT') && (
+                            
                         <button
                             onClick={handleAddProject}
                             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
                         >
                             <Plus size={16} className="mr-2" />
                             Add Project
-                        </button>
+                        </button>)}
                     </div>
                 </div>
 
@@ -216,7 +230,7 @@ const ProjectPage: React.FC = () => {
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
                         <p className="text-gray-500">
-                            {searchTerm 
+                            {searchTerm
                                 ? 'Try adjusting your search or filter criteria'
                                 : 'Get started by creating your first project'
                             }
@@ -238,6 +252,7 @@ const ProjectPage: React.FC = () => {
                         projects={filteredProjects}
                         onEdit={handleEdit}
                         onDelete={handleDelete}
+                        addZabbixServer={handleAddZabbix}
                     />
                 )}
 
@@ -247,10 +262,16 @@ const ProjectPage: React.FC = () => {
                     onClose={handleFormClose}
                     onSubmit={handleFormSubmit}
                     project={editingProject}
-                    availableUsers={users}
-                    availableLocations={locations}
+                    availableUsers={user || []}
+                    availableLocations={location || []}
                 />
 
+                <ZabbixServerForm
+                    isOpen={isZabbixFormOpen}
+                    onClose={handleZabbixFormClose}
+                    onSubmit={handleZabbixFormSubmit}
+                    project={editingProject}
+                />
 
                 {alertMessage && (
                     <AlertMessage
@@ -259,7 +280,6 @@ const ProjectPage: React.FC = () => {
                     />
                 )}
             </div>
-
         </div>
     );
 };

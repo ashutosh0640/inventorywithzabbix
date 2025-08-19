@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { 
-  Database, Plus, Search, Filter, MoreVertical, CheckCircle, AlertCircle, 
-  XCircle, Clock, AlertTriangle, Edit, Trash, Copy, Settings,
-  X, Save, Upload, Download, Share, Tag, BookTemplate, Folder
+  Database, Plus, Search, Filter, AlertTriangle, Edit, Trash, Settings,
+  X, Save, Share, Folder
 } from 'lucide-react';
 import { useApp } from '../../contexts/AppContext';
 import { TemplateGroup } from '../../types';

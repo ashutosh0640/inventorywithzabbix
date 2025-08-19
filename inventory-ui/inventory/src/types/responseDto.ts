@@ -91,6 +91,7 @@ export interface RackSlot {
 export interface Interface {
     id: number;
     ip: string;
+    main: boolean;
     gateway: string;
     primaryDns: string;
     secondaryDns: string;
@@ -100,7 +101,6 @@ export interface Interface {
 
 export interface BareMetal {
     id: number;
-    name: string;
     type: string;
     manufacturer: string;
     modelName: string;
@@ -118,7 +118,6 @@ export interface BareMetal {
 
 export interface NetworkDevices {
     id: number;
-    name: string;
     type: string;
     manufacturer: string;
     model: string;
@@ -134,11 +133,10 @@ export interface NetworkDevices {
 
 export interface VirtualPlatform {
     id: number;
-    name: string;
     hostType: string;
     type: string;
     version: string;
-    interface: Interface;
+    interfaces: Interface[];
     cpuModel: string;
     cpuCores: number;
     ramSize: number;
