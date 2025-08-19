@@ -6,6 +6,7 @@ import com.ashutosh0640.inventy.entity.RackSlots;
 import com.ashutosh0640.inventy.entity.Racks;
 import com.ashutosh0640.inventy.entity.User;
 import com.ashutosh0640.inventy.enums.ActivityType;
+import com.ashutosh0640.inventy.exception.DuplicateEntryException;
 import com.ashutosh0640.inventy.exception.ResourceNotFoundException;
 import com.ashutosh0640.inventy.mapper.RackMapper;
 import com.ashutosh0640.inventy.repository.*;
@@ -19,6 +20,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -51,7 +54,7 @@ public class RackService {
 
             Set<User> users;
             if (dto.getUsersId() == null || dto.getUsersId().isEmpty()) {
-                users = location.getUsers();
+                users = new HashSet<>(location.getUsers());
             } else {
                 users = new HashSet<>(userRepository.findAllById(dto.getUsersId()));
             }
@@ -81,6 +84,10 @@ public class RackService {
             return RackMapper.toDTO(rack, occupied, rack.getServers(), rack.getNetworkDevices(), rack.getUsers());
         } catch (Exception ex) {
             LOGGER.error("Error saving rack: ", ex);
+            boolean flag = checkDuplicateEntry(ex.getMessage());
+            if (flag) {
+                throw new DuplicateEntryException("Duplicate entry. Rack already exist: "+dto.getName());
+            }
             throw new RuntimeException("Failed to save rack. Reason: " + ex.getMessage());
         }
     }
@@ -170,6 +177,9 @@ public class RackService {
         try {
             LOGGER.info("Fetching all racks...");
             List<Racks> racks = rackRepository.findAll();
+            if(racks.isEmpty()) {
+                return new ArrayList<>();
+            }
 
             return racks.stream()
                     .map(r-> {
@@ -441,7 +451,7 @@ public class RackService {
         try {
             LOGGER.info("Fetching rack  for update: rackId={}, userId={}", rackId, userId);
             Racks existingRack  = rackRepository.findByUser(userId, rackId)
-                    .orElseThrow(() -> new ResourceNotFoundException("Rack not found or not authorized for update"));
+                    .orElseThrow(() -> new ResourceNotFoundException("Rack not found or not authorized for update."));
             // Update fields
             existingRack.setName(dto.getName());
             existingRack.setTotalSlot(dto.getTotalSlot());
@@ -451,6 +461,12 @@ public class RackService {
                         .orElseThrow(() -> new ResourceNotFoundException("Location not found by id: "+dto.getLocationId()));
                 existingRack.setLocation(l);
             }
+
+            Set<User> users = dto.getUsersId().stream()
+                    .map(userRepository::getReferenceById)     // returns a proxy, no query
+                    .collect(Collectors.toSet());
+
+            existingRack.setUsers(users);
 
             // Save updated rack
             Racks rack = rackRepository.save(existingRack);
@@ -550,6 +566,18 @@ public class RackService {
             LOGGER.error("Found error while counting rack for location with id: {} ", locationId, ex);
             throw new RuntimeException("Found error while counting rack . Reason: " + ex.getMessage());
         }
+    }
+
+
+    public boolean checkDuplicateEntry(String message ) {
+        String regex = "(?i)Duplicate entry";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(message);
+
+        if (matcher.find()) {
+            return true;
+        }
+        return false;
     }
 
 }

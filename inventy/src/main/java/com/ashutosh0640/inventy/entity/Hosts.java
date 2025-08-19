@@ -1,29 +1,20 @@
 package com.ashutosh0640.inventy.entity;
 import com.ashutosh0640.inventy.enums.HostType;
 import jakarta.persistence.*;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 @Inheritance(strategy = InheritanceType.JOINED)
 public abstract class Hosts {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-
-    @Column(unique = true, nullable = false)
-    private String hostName;
 
     @Column(name = "host_type")
     @Enumerated(EnumType.STRING)
@@ -48,9 +39,63 @@ public abstract class Hosts {
     )
     private Set<User> users;
 
-    public void addInterface(Interfaces entity) {
-        this.interfaces.add(entity);
-        entity.setHost(this); // Set the parent reference on the child
+    public Hosts() {}
+
+    public Hosts(Long id, HostType hostType, LocalDateTime createdAt, LocalDateTime updatedAt, Set<Interfaces> interfaces, Set<User> users) {
+        this.id = id;
+        this.hostType = hostType;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+        this.interfaces = interfaces;
+        this.users = users;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public HostType getHostType() {
+        return hostType;
+    }
+
+    public void setHostType(HostType hostType) {
+        this.hostType = hostType;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public Set<Interfaces> getInterfaces() {
+        return interfaces;
+    }
+
+    public void setInterfaces(Set<Interfaces> interfaces) {
+        this.interfaces = interfaces;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
     }
 
 }

@@ -99,21 +99,29 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
     };
 
     const handleUserToggle = (userId: number) => {
-        setFormData(prev => ({
-            ...prev,
-            selectedUserIds: prev.selectedUserIds?.includes(userId)
-                ? prev.selectedUserIds.filter(id => id !== userId)
-                : [...prev.selectedUserIds, userId]
-        }));
-    };
+        setFormData(prev => {
+            const current = prev.selectedUserIds ?? [];
+            const isSelected = current.includes(userId);
+            return {
+                ...prev,
+                selectedUserIds: isSelected ?
+                current.filter(id => id != userId)
+                : [...current, userId]
+            };
+        })
+    }
 
     const handleLocationToggle = (locationId: number) => {
-        setFormData(prev => ({
-            ...prev,
-            selectedLocationIds: prev.selectedLocationIds?.includes(locationId)
-                ? prev.selectedLocationIds.filter(id => id !== locationId)
-                : [...prev.selectedLocationIds, locationId]
-        }));
+        setFormData(prev => {
+            const current = prev.selectedLocationIds ?? [];
+            const isSelected = current.includes(locationId);
+            return {
+                ...prev,
+                selectedLocationIds: isSelected
+                    ? current.filter(id => id !== locationId)
+                    : [...current, locationId]
+            };
+        });
     };
 
     if (!isOpen) return null;
@@ -174,24 +182,6 @@ export const ProjectForm: React.FC<ProjectFormProps> = ({
                                 <p className="mt-1 text-sm text-red-600">{errors.description}</p>
                             )}
                         </div>
-
-                        {/* Status */}
-                        {/* <div>
-                            <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-                                Status
-                            </label>
-                            <select
-                                id="status"
-                                value={formData.status}
-                                onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as Project['status'] }))}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                            >
-                                <option value="planning">Planning</option>
-                                <option value="active">Active</option>
-                                <option value="on-hold">On Hold</option>
-                                <option value="completed">Completed</option>
-                            </select>
-                        </div> */}
 
                         {/* Users */}
                         <div>

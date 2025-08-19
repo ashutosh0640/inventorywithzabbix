@@ -16,11 +16,6 @@ public class CustomUserDetails implements UserDetails {
         this.user = user;
     }
 
-//    @Override
-//    public Collection<? extends GrantedAuthority> getAuthorities() {
-//        return List.of(new SimpleGrantedAuthority("ROLE_" + user.getRole().getRoleName()));
-//    }
-
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         List<GrantedAuthority> authorities = new ArrayList<>();
@@ -50,17 +45,17 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public boolean isAccountNonExpired() {
-        return user.getIsActive();
+        return user.getActive();
     }
 
     @Override
     public boolean isAccountNonLocked() {
-        return !user.getIsBlocked();
+        return !user.getBlocked();
     }
 
     @Override
     public boolean isEnabled() {
-        return user.getIsActive();
+        return user.getActive();
     }
 
     public Long getId() { return user.getId(); }

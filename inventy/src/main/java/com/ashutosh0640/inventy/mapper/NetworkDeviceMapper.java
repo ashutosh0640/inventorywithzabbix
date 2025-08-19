@@ -19,7 +19,6 @@ public class NetworkDeviceMapper {
 
     public static NetworkDevices toEntity(NetworkDeviceRequestDTO dto, Racks rack, Set<User> users) {
         NetworkDevices entity = new NetworkDevices();
-        entity.setHostName(dto.getName());
         entity.setHostType(HostType.valueOf(dto.getType().toUpperCase()));
         entity.setManufacturer(dto.getManufacturer());
         entity.setModel(dto.getModel());
@@ -28,8 +27,12 @@ public class NetworkDeviceMapper {
         if (dto.getNumberOfPort() != null) {
             entity.setNumberOfPort(dto.getNumberOfPort());
         }
+
         Set<Interfaces> interfaces = dto.getInterfaces().stream()
-                .map(InterfaceMapper::toEntity).collect(Collectors.toSet());
+                .map(i->{
+                    return InterfaceMapper.toEntity(i, entity);
+                }).collect(Collectors.toSet());
+
         entity.setInterfaces(interfaces);
         entity.setRack(rack);
         entity.setRackSlotNumber(dto.getRackSlotNumber());
@@ -41,7 +44,6 @@ public class NetworkDeviceMapper {
     public static NetworkDeviceResponseDTO toDTO(NetworkDevices entity) {
         NetworkDeviceResponseDTO dto = new NetworkDeviceResponseDTO();
         dto.setId(entity.getId());
-        dto.setName(entity.getHostName());
         dto.setType(entity.getHostType());
         dto.setManufacturer(entity.getManufacturer());
         dto.setModel(entity.getModel());

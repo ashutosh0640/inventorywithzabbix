@@ -1,7 +1,7 @@
 // hooks/useNetworkDevices.ts
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { networkDeviceAPI } from '../../service/inventoryApi/networkDeviceAPI';
-import type { NetworkDeviceDTO } from '../../types/requestDto';
+import type { NetworkDeviceReqDTO } from '../../types/requestDto';
 import { useAppSelector } from '../../slice/hooks';
 import type { NetworkDevices } from '../../types/responseDto';
 
@@ -68,7 +68,7 @@ export const useCreateNetworkDeviceBatch = () => {
 export const useUpdateNetworkDevice = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: NetworkDeviceDTO }) =>
+    mutationFn: ({ id, data }: { id: number; data: NetworkDeviceReqDTO }) =>
       networkDeviceAPI.update(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['network-devices'] });
@@ -119,57 +119,62 @@ export const useSearchBySno = (sNo: string) =>
     enabled: !!sNo,
   });
 
-// 📦 All By Users
-export const useAllNetworkDevicesByUsers = () =>
-  useQuery({
-    queryKey: ['network-devices-users'],
-    queryFn: networkDeviceAPI.getAllByUsers,
-  });
-
-// 🧾 Count By Users
-export const useCountNetworkDevicesByUsers = () =>
-  useQuery({
-    queryKey: ['network-devices-count'],
-    queryFn: networkDeviceAPI.countByUsers,
-  });
-
-// 🔍 Get Devices by User IDs
-export const useDevicesForUserByIds = (ids: number[]) =>
-  useQuery({
-    queryKey: ['network-devices-by-user-ids', ids],
-    queryFn: () => networkDeviceAPI.getDevicesForUserByIds(ids),
-    enabled: ids.length > 0,
-  });
-
-  // 🔍 Get Devices by rack and  User
-export const useDeviceByRackAndUser = (rackId: number) => {
+// All By Users
+  export const useNetworkDevicesByUser = () => {
     const loginDetails = useAppSelector((state) => state.auth.loginDetails);
     return useQuery<NetworkDevices[], Error>({
-        queryKey: ['NetworkDevices', 'byrack', rackId, loginDetails?.id],
-        queryFn: async () => {
-            const response = await networkDeviceAPI.getByRackAndUser(rackId);
-            return response;
-        },
-        enabled: !!rackId
+      queryKey: ['network-devices', "by-user", loginDetails?.id],
+      queryFn: async () => {
+        const response = await networkDeviceAPI.getAllByUsers();
+        return response;
+      }
     });
-}
+  }
 
-// 📥 Accessible Check
-export const useIsDeviceAccessible = (id: number) =>
-  useQuery({
-    queryKey: ['network-device-access', id],
-    queryFn: () => networkDeviceAPI.isAccessibleByUser(id),
-    enabled: !!id,
-  });
+  // 🧾 Count By Users
+  export const useCountNetworkDevicesByUser = () =>
+    useQuery({
+      queryKey: ['network-devices-count'],
+      queryFn: networkDeviceAPI.countByUsers,
+    });
 
-// 🔄 Update by Users
-export const useUpdateDeviceByUsers = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: ({ id, data }: { id: number; data: NetworkDeviceDTO }) =>
-      networkDeviceAPI.updateByUsers(id, data),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['network-devices'] });
-    },
-  });
-};
+  // 🔍 Get Devices by User IDs
+  export const useDevicesForUserByIds = (ids: number[]) =>
+    useQuery({
+      queryKey: ['network-devices-by-user-ids', ids],
+      queryFn: () => networkDeviceAPI.getDevicesForUserByIds(ids),
+      enabled: ids.length > 0,
+    });
+
+  // 🔍 Get Devices by rack and  User
+  export const useDeviceByRackAndUser = (rackId: number | null) => {
+    const loginDetails = useAppSelector((state) => state.auth.loginDetails);
+    return useQuery<NetworkDevices[], Error>({
+      queryKey: ['NetworkDevices', 'byrack', rackId, loginDetails?.id],
+      queryFn: async () => {
+        const response = await networkDeviceAPI.getByRackAndUser(rackId!);
+        return response;
+      },
+      enabled: !!rackId
+    });
+  }
+
+  // 📥 Accessible Check
+  export const useIsDeviceAccessible = (id: number) =>
+    useQuery({
+      queryKey: ['network-device-access', id],
+      queryFn: () => networkDeviceAPI.isAccessibleByUser(id),
+      enabled: !!id,
+    });
+
+  // 🔄 Update by Users
+  export const useUpdateDeviceByUsers = () => {
+    const queryClient = useQueryClient();
+    return useMutation({
+      mutationFn: ({ id, data }: { id: number; data: NetworkDeviceReqDTO }) =>
+        networkDeviceAPI.updateByUsers(id, data),
+      onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['network-devices'] });
+      },
+    });
+  };

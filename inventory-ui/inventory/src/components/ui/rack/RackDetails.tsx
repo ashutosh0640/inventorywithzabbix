@@ -1,10 +1,10 @@
 import { useRackByIdAndUser } from '../../../features/inventoryQuery/rackQuery';
-import { useBareMetalServerByRackAndUser } from '../../../features/inventoryQuery/baremetalQuery';
+import { useBaremetalByRackAndUser } from '../../../features/inventoryQuery/baremetalQuery';
 import { useDeviceByRackAndUser } from '../../../features/inventoryQuery/networkDeviceQuery';
+import { StatusIndicator } from '../StatusIndecator';
 import { LoadingSkeleton } from '../LoadingSkeleton';
 import {
   Undo2,
-  Dot,
   Server,
   Network,
   MapPin,
@@ -29,18 +29,6 @@ const getDeviceIcon = (type: string) => {
   }
 };
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case 'ONLINE':
-      return 'bg-green-400 text-green-800 shadow-md';
-    case 'OFFLINE':
-      return 'bg-red-400 text-red-800 blink shadow-md';
-    case 'maintenance':
-      return 'bg-yellow-100 text-yellow-800 blink shadow-md';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
 
 
 export const RackDetails = () => {
@@ -48,7 +36,7 @@ export const RackDetails = () => {
   const { id } = useParams();
   const rackId = parseInt(id || "0");
   const { data: rack } = useRackByIdAndUser(rackId);
-  const { data: bareMetal } = useBareMetalServerByRackAndUser(rackId);
+  const { data: bareMetal } = useBaremetalByRackAndUser(rackId);
   const { data: device } = useDeviceByRackAndUser(rackId);
 
   if (!rack) {
@@ -64,9 +52,8 @@ export const RackDetails = () => {
 
   // Create slot visualization
   const createSlotVisualization = () => {
-    const slots = Array.from({ length: (rack.totalSlot / 2) + 1}, (_, index) => {
+    const slots = Array.from({ length: (rack.totalSlot / 2) + 1 }, (_, index) => {
       const slotNumber = (rack.totalSlot / 2 - index) * 2;
-      console.log("Slotnumber: ", slotNumber);
       const server = rack.server.find(s => s.rackSlotNumber === slotNumber);
       const networkDevice = rack.networkDevices?.find(d => d.rackSlotNumber === slotNumber);
 
@@ -242,6 +229,9 @@ export const RackDetails = () => {
                             Server Name
                           </th>
                           <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Vendor
+                          </th>
+                          <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Management
                           </th>
                           <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
@@ -259,15 +249,23 @@ export const RackDetails = () => {
                         {bareMetal?.map((server) => (
                           <tr key={server.id} className=" hover:bg-gray-100 text-xs transition-colors">
                             <td>
-                              <span className={`rounded-full font-semibold ${getStatusColor(server.interfaces[0].status)}`}>
-                                <Dot />
-                              </span>
+                              {server.interfaces.length > 0 ? (
+
+                                <StatusIndicator status={server.interfaces[0].status as 'ONLINE' | 'OFFLINE' | 'MAINTENANCE'} size={4} />
+
+                              ) : (
+                                <StatusIndicator status='MAINTENANCE' size={4} />
+                              )}
+
                             </td>
                             <td>
                               <div className="flex items-center">
                                 <Server size={12} className="text-blue-600 mr-3" />
                                 <span className="font-medium text-gray-900">{server.name}</span>
                               </div>
+                            </td>
+                            <td>
+                              <span className="text-xs text-gray-600">{server.manufacturer}</span>
                             </td>
                             <td>
                               <span className="text-xs text-gray-600">{server.management}</span>
@@ -295,6 +293,7 @@ export const RackDetails = () => {
               {/* Network Devices */}
               <div className="bg-white rounded-lg border border-gray-200 p-4">
                 <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center">
+
                   <Network size={12} className="mr-2 text-green-600" />
                   Network Devices ({device?.length || 0})
                 </h3>
@@ -303,11 +302,14 @@ export const RackDetails = () => {
                     <table className="w-full">
                       <thead className="bg-gray-200 border-b border-gray-200 ">
                         <tr>
-                          <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                          <th className="p-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Status
                           </th>
                           <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                            Server Name
+                            Device Name
+                          </th>
+                          <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Vendor
                           </th>
                           <th className="p-1 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                             Model
@@ -325,29 +327,30 @@ export const RackDetails = () => {
                           <tr key={device.id} className=" hover:bg-gray-100 text-xs transition-colors">
                             <td>
                               {device.interfaces.length > 0 ? (
-                                <span className={` rounded-full text-center font-semibold ${getStatusColor(device.interfaces[0].status)}`}>
-                                  <Dot />
-                                </span>
+                                <StatusIndicator status={device.interfaces[0].status as 'ONLINE' | 'OFFLINE' | 'MAINTENANCE'} size={4} />
                               ) : (
-                                <span className={` rounded-full font-semibold ${getStatusColor('maintenance')}`}>
-                                  <Dot />
-                                </span>
+                                <StatusIndicator status='MAINTENANCE' size={4} />
                               )}
 
                             </td>
                             <td>
                               <div className=" flex items-center justify-start">
-                                <Server size={12} className="text-blue-600 mr-3" />
+                                <div className="text-green-600 mr-3">
+                                  {getDeviceIcon(device.type)}
+                                </div>
                                 <span className=" text-xs font-medium text-gray-900">{device.name}</span>
                               </div>
                             </td>
                             <td>
+                              <span className=" text-xs text-gray-600">{device.manufacturer}</span>
+                            </td>
+                            <td>
                               <span className=" text-xs text-gray-600">{device.model}</span>
                             </td>
-                            <td className="p-1">
-                              <span className="text-xs text-gray-600">{device.serialNumber}</span>
+                            <td >
+                              <span className=" text-xs text-gray-600">{device.serialNumber}</span>
                             </td>
-                            <td className="p-1">
+                            <td>
                               {device.interfaces.length > 0 ? (
                                 <span className={`rounded-full text-xs text-gray-600 `}>
                                   {device.interfaces[0].ip}

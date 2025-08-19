@@ -3,17 +3,9 @@ package com.ashutosh0640.inventy.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class RackRequestDTO {
 
     @NotBlank(message = "Rack name is required")
@@ -26,4 +18,44 @@ public class RackRequestDTO {
 
     private Set<Long> usersId;
 
+    public RackRequestDTO() {}
+
+    public RackRequestDTO(String name, Short totalSlot, Long locationId, Set<Long> usersId) {
+        this.name = name;
+        this.totalSlot = totalSlot;
+        this.locationId = locationId;
+        this.usersId = usersId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Short getTotalSlot() {
+        return totalSlot;
+    }
+
+    public void setTotalSlot(Short totalSlot) {
+        this.totalSlot = totalSlot;
+    }
+
+    public Long getLocationId() {
+        return locationId;
+    }
+
+    public void setLocationId(Long locationId) {
+        this.locationId = locationId;
+    }
+
+    public Set<Long> getUsersId() {
+        return usersId;
+    }
+
+    public void setUsersId(Set<Long> usersId) {
+        this.usersId = usersId;
+    }
 }

@@ -11,6 +11,7 @@ import com.ashutosh0640.inventy.enums.HostType;
 import com.ashutosh0640.inventy.exception.ResourceNotFoundException;
 import com.ashutosh0640.inventy.mapper.InterfaceMapper;
 import com.ashutosh0640.inventy.mapper.NetworkDeviceMapper;
+import com.ashutosh0640.inventy.repository.InterfaceRepository;
 import com.ashutosh0640.inventy.repository.NetworkDeviceRepository;
 import com.ashutosh0640.inventy.repository.RackRepository;
 import com.ashutosh0640.inventy.repository.UserRepository;
@@ -33,6 +34,7 @@ public class NetworkDeviceService {
     private final UserRepository userRepository;
     private final ActivityLogService activityLogService;
     private final RackSlotsService rackSlotService;
+    private final InterfaceRepository interfaceRepository;
     private static final Logger LOGGER = LoggerFactory.getLogger(NetworkDeviceService.class);
 
 
@@ -40,12 +42,14 @@ public class NetworkDeviceService {
                                 RackRepository rackRepository,
                                 UserRepository userRepository,
                                 ActivityLogService activityLogService,
-                                RackSlotsService rackSlotService) {
+                                RackSlotsService rackSlotService,
+                                InterfaceRepository interfaceRepository) {
         this.networkDeviceRepository = networkDeviceRepository;
         this.rackRepository = rackRepository;
         this.userRepository = userRepository;
         this.activityLogService = activityLogService;
         this.rackSlotService = rackSlotService;
+        this.interfaceRepository = interfaceRepository;
     }
 
     public NetworkDeviceResponseDTO getById(Long id) {
@@ -63,26 +67,6 @@ public class NetworkDeviceService {
         }
     }
 
-
-    public List<NetworkDeviceResponseDTO> getByNameOrIpAndUser(String name, String ip) {
-        if(!isValidIPv4(ip)) {
-            LOGGER.warn("IP is null or invalid. IP: {}",ip);
-            throw new InvalidParameterException("IP is null or invalid. IP: "+ip);
-        }
-        try {
-            Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
-            List<NetworkDevices> entity = networkDeviceRepository.getByNameOrIpAndUser(name, ip,  userId);
-            if (entity.isEmpty()) {
-                return new ArrayList<>();
-            }
-            return entity.stream().map(e->{
-                return NetworkDeviceMapper.toDTO(e, e.getInterfaces(), e.getUsers());
-            }).toList();
-        } catch (Exception e) {
-            LOGGER.error("Found exception while fetch items by name or ip: {}", name);
-            throw new RuntimeException("Found exception while fetch items by name or ip: "+ name+" Message: "+e.getMessage());
-        }
-    }
 
     public List<NetworkDeviceResponseDTO> getByRackAndUser(Long rackId) {
         if (rackId < 0 ) {
@@ -156,8 +140,8 @@ public class NetworkDeviceService {
                 return NetworkDeviceMapper.toDTO(e, e.getInterfaces(), e.getUsers());
             }).toList();
         } catch (Exception e) {
-            LOGGER.warn("Found exception while fetching items.");
-            throw new RuntimeException("Found exception while fetching items.");
+            LOGGER.warn("Found exception while fetching items. {}",e.getMessage());
+            throw new RuntimeException("Found exception while fetching items. Reason: "+ e.getMessage());
         }
     }
 
@@ -192,16 +176,19 @@ public class NetworkDeviceService {
             NetworkDevices entity = NetworkDeviceMapper.toEntity(dto, rackEntity, new HashSet<>(userEntities));
             entity=  networkDeviceRepository.save(entity);
 
+            Set<Interfaces> in = dto.getInterfaces().stream().map(InterfaceMapper::toEntity).collect(Collectors.toSet());
+            List<Interfaces> savadIn = interfaceRepository.saveAll(in);
+
             rackSlotService.assignHostToSlot(entity.getId(), rackEntity.getId(), entity.getRackSlotNumber());
 
             activityLogService.createEntity(
                     ActivityType.WRITE,
-                    "Network device is created. Name: "+entity.getHostName()
+                    "Network device is created. Serial number: "+entity.getSerialNumber()
             );
             return NetworkDeviceMapper.toDTO(entity);
         } catch (Exception e) {
-            LOGGER.error("Found exception while saving network device. Name: {}",dto.getName());
-            throw new RuntimeException("Found exception while saving network device. Name: "+dto.getName()+ " Message: "+e.getMessage());
+            LOGGER.error("Found exception while saving network device. Name: {}",dto.getSerialNumber());
+            throw new RuntimeException("Found exception while saving network device. Serial number: "+dto.getSerialNumber()+ " Message: "+e.getMessage());
         }
     }
 
@@ -230,7 +217,6 @@ public class NetworkDeviceService {
 
             List<User> userEntities = userRepository.findAllById(dto.getUserIds());
 
-            existing.setHostName(dto.getName());
             existing.setHostType(HostType.valueOf(dto.getType().toUpperCase()));
             existing.setManufacturer(dto.getManufacturer());
             existing.setModel(dto.getModel());
@@ -272,7 +258,7 @@ public class NetworkDeviceService {
 
             activityLogService.createEntity(
                     ActivityType.UPDATE,
-                    "Network device is updated. Name: "+existing.getHostName()
+                    "Network device is updated. Name: "+existing.getSerialNumber()
             );
 
             return NetworkDeviceMapper.toDTO(existing);
@@ -293,7 +279,7 @@ public class NetworkDeviceService {
 
             activityLogService.createEntity(
                     ActivityType.DELETE,
-                    "Network device is deleted. Name: "+entity.getHostName()
+                    "Network device is deleted. Name: "+entity.getSerialNumber()
             );
         } catch (Exception e) {
             LOGGER.error("Found exception while deleting device by ID: {}. Message: {}", id, e.getMessage());

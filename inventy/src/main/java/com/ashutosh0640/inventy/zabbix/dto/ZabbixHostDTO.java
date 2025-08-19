@@ -1,22 +1,40 @@
 package com.ashutosh0640.inventy.zabbix.dto;
 
-import com.ashutosh0640.inventy.entity.Hosts;
-import com.ashutosh0640.inventy.entity.Interfaces;
-import com.ashutosh0640.inventy.zabbix.enums.HostAvailability;
-import com.ashutosh0640.inventy.zabbix.enums.ZabbixHostStauts;
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
 
-import java.util.List;
-import java.util.Map;
-
-@Data
-@AllArgsConstructor
 public class ZabbixHostDTO {
     private String id;
-
     private String hostName;
-
     private Long hostId;
+
+    public ZabbixHostDTO() {    }
+
+    public ZabbixHostDTO(String id, String hostName, Long hostId) {
+        this.id = id;
+        this.hostName = hostName;
+        this.hostId = hostId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getHostName() {
+        return hostName;
+    }
+
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public Long getHostId() {
+        return hostId;
+    }
+
+    public void setHostId(Long hostId) {
+        this.hostId = hostId;
+    }
 }

@@ -90,13 +90,17 @@ export const RackForm: React.FC<RackFormProps> = ({
   };
 
   const handleUserToggle = (userId: number) => {
-    setFormData(prev => ({
-      ...prev,
-      usersId: prev.usersId?.includes(userId)
-        ? prev.usersId?.filter(id => id !== userId)
-        : [...prev.usersId, userId]
-    }));
-  };
+        setFormData(prev => {
+            const current = prev.usersId ?? [];
+            const isSelected = current.includes(userId);
+            return {
+                ...prev,
+                usersId: isSelected ?
+                current.filter(id => id != userId)
+                : [...current, userId]
+            };
+        })
+    }
 
   if (!isOpen) return null;
 
@@ -140,6 +144,7 @@ export const RackForm: React.FC<RackFormProps> = ({
                 <p className="mt-1 text-sm text-red-600">{errors.name}</p>
               )}
             </div>
+
 
             {/* Total Slots */}
             <div>

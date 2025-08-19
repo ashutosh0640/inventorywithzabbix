@@ -1,7 +1,6 @@
 package com.ashutosh0640.inventy.repository;
 
 import com.ashutosh0640.inventy.entity.BareMetalServers;
-import com.ashutosh0640.inventy.entity.Virtualizations;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,7 +16,6 @@ import java.util.Optional;
 @Repository
 public interface BareMetalRepository extends JpaRepository<BareMetalServers, Long> {
 
-    List<Virtualizations> findByHostNameContainingIgnoreCase(String name);
 
     // Get all bareMetalServers assigned to a user
     @Query("SELECT b FROM BareMetalServers b JOIN b.users u WHERE u.id = :userId")
@@ -61,24 +59,15 @@ public interface BareMetalRepository extends JpaRepository<BareMetalServers, Lon
             @Param("modelName") String modelName,
             @Param("userId") Long userId);
 
-    // Find by server name (contains, case-insensitive) for a specific user
-    @Query("SELECT b FROM BareMetalServers b JOIN b.users u " +
-            "WHERE LOWER(b.hostName) LIKE LOWER(CONCAT('%', :hostName, '%')) " +
-            "AND u.id = :userId")
-    List<BareMetalServers> findByServerNameAndUserContainingIgnoreCase(
-            @Param("hostName") String hostName,
-            @Param("userId") Long userId);
 
     // Alternative method combining all search criteria with user filter
     @Query("SELECT b FROM BareMetalServers b JOIN b.users u WHERE " +
             "(:serialNumber IS NULL OR b.serialNumber = :serialNumber) AND " +
             "(:modelName IS NULL OR LOWER(b.modelName) LIKE LOWER(CONCAT('%', :modelName, '%'))) AND " +
-            "(:hostName IS NULL OR LOWER(b.hostName) LIKE LOWER(CONCAT('%', :hostName, '%'))) AND " +
             "u.id = :userId")
     List<BareMetalServers> searchAny(
             @Param("serialNumber") String serialNumber,
             @Param("modelName") String modelName,
-            @Param("hostName") String hostName,
             @Param("userId") Long userId);
 
 
@@ -109,10 +98,6 @@ public interface BareMetalRepository extends JpaRepository<BareMetalServers, Lon
     @Query("SELECT b FROM BareMetalServers b JOIN b.users u WHERE u.id = :userId")
     Page<BareMetalServers> findAllByUserPaginated(@Param("userId") Long userId, Pageable pageable);
 
-
-    // Search by bareMetalServer name (partial match) for a user with pagination
-    @Query("SELECT b FROM BareMetalServers b JOIN b.users u WHERE u.id = :userId AND LOWER(b.hostName) LIKE LOWER(CONCAT('%', :hostName, '%'))")
-    Page<BareMetalServers> searchByNameAndUser(@Param("hostName") String hostName, @Param("userId") Long userId, Pageable pageable);
 
 
     // Count how many bareMetalServers are assigned to a user

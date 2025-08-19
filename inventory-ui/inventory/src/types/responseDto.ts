@@ -82,6 +82,12 @@ export interface Rack {
     user: User[];
 }
 
+export interface RackSlot {
+    id: number;
+    slotNumber: number;
+    status: string;
+}
+
 export interface Interface {
     id: number;
     ip: string;
@@ -111,7 +117,6 @@ export interface BareMetal {
 
 
 export interface NetworkDevices {
-
     id: number;
     name: string;
     type: string;
@@ -125,25 +130,22 @@ export interface NetworkDevices {
     rackSlotNumber: number;
     users: User[]
 
-
-
 }
-
-
-
-
 
 export interface VirtualPlatform {
     id: number;
-    platformName: string;
+    name: string;
+    hostType: string;
+    type: string;
     version: string;
-    ipAddress: string;
-    status: 'ACTIVE' | 'INACTIVE' | 'MAINTENANCE' | 'DECOMMISSIONED' | string;
+    interface: Interface;
+    cpuModel: string;
     cpuCores: number;
     ramSize: number;
     ramSizeUnit: string;
     storageSize: number;
     storageSizeUnit: string;
+    storageType: string;
     createdAt: string;
     updatedAt: string;
     server: BareMetal;

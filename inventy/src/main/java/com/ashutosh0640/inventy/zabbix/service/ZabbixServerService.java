@@ -51,7 +51,6 @@ public class ZabbixServerService {
                 .orElseThrow(() -> new ResourceNotFoundException("Project not found by id: "+dto.getProjectId()));
         ZabbixServer entity = ZabbixServerMapper.toEntity(dto, project);
         entity = repository.save(entity);
-
         return ZabbixServerMapper.toDTO(entity, entity.getProject());
 
     }
@@ -84,7 +83,9 @@ public class ZabbixServerService {
     public List<ZabbixServerResponseDTO> findByUserId() {
         Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
         List<ZabbixServer> entities = repository.findByUser(userId);
-        return entities.stream().map(ZabbixServerMapper::toDTO).toList();
+        return entities.stream().map(z -> {
+            return ZabbixServerMapper.toDTO(z, z.getProject());
+        }).toList();
     }
 
     public Long getServerCount() {

@@ -2,14 +2,8 @@ package com.ashutosh0640.inventy.entity;
 
 import com.ashutosh0640.inventy.enums.SlotStatus;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
 @Table(name = "rack_slots")
 public class RackSlots {
     @Id
@@ -33,6 +27,53 @@ public class RackSlots {
         this.status = SlotStatus.EMPTY;
     }
 
+    public RackSlots(Long id, Short slotNumber, SlotStatus status, Racks rack, Hosts hosts) {
+        this.id = id;
+        this.slotNumber = slotNumber;
+        this.status = status;
+        this.rack = rack;
+        this.hosts = hosts;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Short getSlotNumber() {
+        return slotNumber;
+    }
+
+    public void setSlotNumber(Short slotNumber) {
+        this.slotNumber = slotNumber;
+    }
+
+    public SlotStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SlotStatus status) {
+        this.status = status;
+    }
+
+    public Racks getRack() {
+        return rack;
+    }
+
+    public void setRack(Racks rack) {
+        this.rack = rack;
+    }
+
+    public Hosts getHosts() {
+        return hosts;
+    }
+
+    public void setHosts(Hosts hosts) {
+        this.hosts = hosts;
+    }
 }
 
 

@@ -5,6 +5,7 @@ import {
 } from '@tanstack/react-query';
 import { projectsAPI } from '../../service/inventoryApi/projectApi';
 import type { ProjectReqDTO } from '../../types/requestDto';
+import type { Project } from '../../types/responseDto'
 
 const PROJECTS = 'Projects' as const;
 
@@ -20,18 +21,23 @@ const queryKeys = {
     detail: (id: number) => [...queryKeys.base, id] as const
 };
 
-export const useProjects = () =>
-    useQuery({
+export const useProjects = () => {
+    return useQuery<Project[], Error>({
         queryKey: queryKeys.list(),
         queryFn: projectsAPI.getAll
     });
+}
 
-export const useProject = (id: number) =>
-    useQuery({
+
+export const useProject = (id: number) => {
+    return useQuery<Project, Error>({
         queryKey: queryKeys.detail(id),
         queryFn: () => projectsAPI.getById(id),
         enabled: !!id
     });
+
+}
+    
 
 export const useSortedProjects = () =>
     useQuery({ queryKey: queryKeys.sorted(), queryFn: projectsAPI.getSorted });
@@ -56,7 +62,8 @@ export const useSearchProjects = (
     });
 
 export const useProjectCount = () =>
-    useQuery({ queryKey: [...queryKeys.base, 'count'],
+    useQuery({
+        queryKey: [...queryKeys.base, 'count'],
         queryFn: projectsAPI.countByUser
     });
 
@@ -90,18 +97,32 @@ export const useUpdateProject = () => {
     return useMutation({
         mutationFn: ({ id, dto }: { id: number; dto: ProjectReqDTO }) =>
             projectsAPI.update(id, dto),
-        onSuccess: (_, { id }) => {
-            qc.invalidateQueries({ queryKey: queryKeys.detail(id) });
-            invalidateLists(qc);
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.base });
         }
     });
 };
+
+
+export const useUpdateProjectBUser = () => {
+    const qc = useQueryClient();
+    return useMutation({
+        mutationFn: ({ id, dto }: { id: number; dto: ProjectReqDTO }) =>
+            projectsAPI.updateByUser(id, dto),
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.base });
+        }
+    });
+};
+
 
 export const useDeleteProject = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (id: number) => projectsAPI.delete(id),
-        onSuccess: () => invalidateLists(qc)
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.base });
+        }
     });
 };
 
@@ -109,7 +130,9 @@ export const useDeleteProjectsBatch = () => {
     const qc = useQueryClient();
     return useMutation({
         mutationFn: (ids: number[]) => projectsAPI.deleteBatch(ids),
-        onSuccess: () => invalidateLists(qc)
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.base });
+        }
     });
 };
 
@@ -125,8 +148,9 @@ const usePatchHelper = <
     return useMutation({
         mutationFn: ({ id, ids }: { id: number; ids: Set<number> }) =>
             apiFn(id, ids),
-        onSuccess: (_, { id }) =>
-            qc.invalidateQueries({ queryKey: queryKeys.detail(id) })
+        onSuccess: () => {
+            qc.invalidateQueries({ queryKey: queryKeys.base });
+        }
     });
 };
 

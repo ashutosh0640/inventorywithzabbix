@@ -2,7 +2,9 @@ package com.ashutosh0640.inventy.controller;
 
 import com.ashutosh0640.inventy.dto.RackRequestDTO;
 import com.ashutosh0640.inventy.dto.RackResponseDTO;
+import com.ashutosh0640.inventy.dto.RackSlotDTO;
 import com.ashutosh0640.inventy.service.RackService;
+import com.ashutosh0640.inventy.service.RackSlotsService;
 import jakarta.transaction.Transactional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,10 +21,12 @@ import java.util.List;
 public class RackController {
 
     private final RackService rackService;
+    private final RackSlotsService rackSlotsService;
     private static final Logger LOGGER = LoggerFactory.getLogger(RackController.class);
 
-    public RackController(RackService rackService) {
+    public RackController(RackService rackService, RackSlotsService rackSlotsService) {
         this.rackService = rackService;
+        this.rackSlotsService = rackSlotsService;
     }
 
     @PreAuthorize("hasPermission(null, 'RACK', 'WRITE')")
@@ -66,6 +70,14 @@ public class RackController {
         LOGGER.info("Received request to fetch rack with name: {}", name);
         List<RackResponseDTO> rack = rackService.getByName(name);
         return new ResponseEntity<>(rack, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasPermission(#rackId, 'RACK', 'READ')")
+    @GetMapping("/slot/{rackId}")
+    public ResponseEntity<List<RackSlotDTO>> getSlotsByRack(@PathVariable Long rackId) {
+        LOGGER.info("Received request to fetch slots for rack id: {}",rackId);
+        List<RackSlotDTO> dto = rackSlotsService.getSlotsByRack(rackId);
+        return ResponseEntity.ok(dto);
     }
 
 

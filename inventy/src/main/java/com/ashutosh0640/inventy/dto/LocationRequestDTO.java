@@ -2,24 +2,36 @@ package com.ashutosh0640.inventy.dto;
 
 
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Set;
 
-
-@NoArgsConstructor
-@AllArgsConstructor
-@Getter
-@Setter
 public class LocationRequestDTO {
 
     @NotBlank(message = "Location name is required.")
     private String name;
     private Set<Long> userIds;
 
+    public LocationRequestDTO() { }
+
+    public LocationRequestDTO(String name, Set<Long> userIds) {
+        this.name = name;
+        this.userIds = userIds;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Set<Long> getUserIds() {
+        return userIds;
+    }
+
+    public void setUserIds(Set<Long> userIds) {
+        this.userIds = userIds;
+    }
 }
 

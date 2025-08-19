@@ -52,13 +52,12 @@ public class ProjectController {
         LOGGER.info("Received request to fetch project with ID: {}", id);
         ProjectResponseDTO project = projectService.getProjectByUser(id);
         return new ResponseEntity<>(project, HttpStatus.OK);
-
     }
 
 
     @PreAuthorize("hasPermission(null, 'PROJECT', 'READ')")
-    @GetMapping
-    public ResponseEntity<List<ProjectResponseDTO>> getAllProjects() {
+    @GetMapping("/user")
+    public ResponseEntity<List<ProjectResponseDTO>> getAllProjectsByUser() {
         LOGGER.info("Received request to fetch all projects");
         List<ProjectResponseDTO> projects = projectService.getAllProjectsByUser();
         return ResponseEntity.ok(projects);
@@ -88,7 +87,7 @@ public class ProjectController {
 
 
     @PreAuthorize("hasPermission(#id, 'PROJECT', 'EDIT')")
-    @PutMapping("/{id}")
+    @PutMapping("/{id}/update/users")
     public ResponseEntity<ProjectResponseDTO> updateProject(@PathVariable Long id, @RequestBody ProjectRequestDTO dto) {
         LOGGER.info("Received request to update project with ID: {}", id);
         ProjectResponseDTO updatedProject = projectService.updateProjectForUser(id, dto);

@@ -41,7 +41,6 @@ public class VirtualMachineMapper {
         VirtualMachineResponseDTO vmDto = new VirtualMachineResponseDTO();
 
         vmDto.setId(entity.getId());
-        vmDto.setHostName(entity.getHostName());
         vmDto.setHostType(entity.getHostType());
         vmDto.setOs(entity.getOs());
         vmDto.setOsVersion(entity.getOsVersion());

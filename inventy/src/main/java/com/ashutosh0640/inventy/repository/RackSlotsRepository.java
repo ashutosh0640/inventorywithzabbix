@@ -9,12 +9,18 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Repository
 public interface RackSlotsRepository extends JpaRepository<RackSlots, Long> {
 
     @Query("SELECT count(s) FROM RackSlots s WHERE s.rack.id = :rackId AND s.slotNumber = :slotNumber AND s.status = 'EMPTY'")
     Long getRackEmptySlotNumber(@Param("rackId") Long rackId, @Param("slotNumber") Short slotNumber);
 
+
+    @Query("SELECT s from RackSlots s WHERE s.rack.id = :rackId")
+    List<RackSlots> getSlotsByRack(@Param("rackId") Long rackId);
 
     @Modifying
     @Transactional

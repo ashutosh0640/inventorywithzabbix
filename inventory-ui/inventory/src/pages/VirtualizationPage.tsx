@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Select from '../components/ui/Select';
+import { Input } from '../components/ui/Input';
+import { Select } from '../components/ui/Select';
 import { Monitor, Plus, Edit, Trash2, Search, X } from 'lucide-react';
 import { FiAlertTriangle } from "react-icons/fi";
 import type { VirtualPlatform, BareMetal } from '../types/responseDto';

@@ -6,6 +6,7 @@ import com.ashutosh0640.inventy.enums.HostType;
 import com.ashutosh0640.inventy.enums.ManagementType;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -13,8 +14,6 @@ public class BareMetalMapper {
 
     public static BareMetalServers toEntity(BareMetalServerRequestDTO dto, Racks rack, Set<User> users) {
         BareMetalServers entity = new BareMetalServers();
-
-        entity.setHostName(dto.getName());
         entity.setHostType(HostType.valueOf(dto.getType().toUpperCase()));
         entity.setManagement(ManagementType.valueOf(dto.getManagement().toUpperCase()));
         entity.setManufacturer(dto.getManufacturer());
@@ -30,7 +29,6 @@ public class BareMetalMapper {
     public static BareMetalServerResponseDTO toDTO(BareMetalServers server) {
         BareMetalServerResponseDTO dtos = new BareMetalServerResponseDTO();
         dtos.setId(server.getId());
-        dtos.setName(server.getHostName());
         dtos.setType(server.getHostType());
         dtos.setManufacturer(server.getManufacturer());
         dtos.setModelName(server.getModelName());

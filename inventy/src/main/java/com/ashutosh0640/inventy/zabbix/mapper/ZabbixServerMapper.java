@@ -40,6 +40,7 @@ public class ZabbixServerMapper {
     public static ZabbixServerResponseDTO toDTO (ZabbixServer entity, Project project) {
         ZabbixServerResponseDTO dto = toDTO(entity);
         dto.setProject(ProjectMapper.toDTO(project));
+        System.out.println("zabbix server project name: "+dto.getProject().getName());
         return dto;
     }
 

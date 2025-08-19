@@ -1,15 +1,7 @@
 package com.ashutosh0640.inventy.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class LoginRequestDTO {
 
     @NotBlank(message = "Username is required.")
@@ -17,4 +9,27 @@ public class LoginRequestDTO {
 
     @NotBlank(message = "Password is required.")
     private String password;
+
+    public LoginRequestDTO() {}
+
+    public LoginRequestDTO(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
 }

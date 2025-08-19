@@ -1,23 +1,10 @@
 package com.ashutosh0640.inventy.dto;
 
-import com.ashutosh0640.inventy.entity.Role;
-import com.ashutosh0640.inventy.enums.ResourceType;
-import jakarta.persistence.Column;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
+
 public class PermissionRequestDTO {
 
     @NotBlank(message = "Name is required.")
@@ -29,4 +16,47 @@ public class PermissionRequestDTO {
     private String resourceType; // USER, PROJECT, SERVER, VM
 
     private Set<Integer> roleIds;
+
+    public PermissionRequestDTO() {}
+
+    public PermissionRequestDTO(String name, String description, String resourceType, Set<Integer> roleIds) {
+        this.name = name;
+        this.description = description;
+        this.resourceType = resourceType;
+        this.roleIds = roleIds;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getResourceType() {
+        return resourceType;
+    }
+
+    public void setResourceType(String resourceType) {
+        this.resourceType = resourceType;
+    }
+
+    public Set<Integer> getRoleIds() {
+        return roleIds;
+    }
+
+    public void setRoleIds(Set<Integer> roleIds) {
+        this.roleIds = roleIds;
+    }
+
+
 }

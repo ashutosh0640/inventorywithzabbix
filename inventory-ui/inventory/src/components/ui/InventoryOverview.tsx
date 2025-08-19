@@ -71,7 +71,7 @@ const InventoryOverview: React.FC<InventoryOverviewProps> = ({ data }) => {
                                                             style={{ width: `${item.rackOccupiedPer}%`, backgroundColor: item.rackOccupiedPer > 50 ? 'green' : 'blue' }}
                                                         ></div>
                                                     </div>
-                                                    <span className="ml-2 text-sm text-gray-600">{item.rackOccupiedPer.toFixed(2)}%</span>
+                                                    <span className="ml-2 text-sm text-gray-600">{item.rackOccupiedPer?.toFixed(2)}%</span>
                                                 </div>
                                             </td>
                                         </tr>

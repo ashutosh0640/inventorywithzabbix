@@ -1,5 +1,6 @@
 package com.ashutosh0640.inventy.service;
 
+import com.ashutosh0640.inventy.dto.RackSlotDTO;
 import com.ashutosh0640.inventy.entity.RackSlots;
 import com.ashutosh0640.inventy.repository.RackSlotsRepository;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,21 @@ public class RackSlotsService {
     public Boolean isRackSlotEmpty(Long rackId, Short slotNo) {
         Long n = rackSlotsRepository.getRackEmptySlotNumber(rackId, slotNo);
         return n > 0;
+    }
+
+    public List<RackSlotDTO> getSlotsByRack(Long rackId) {
+        try {
+            return rackSlotsRepository.getSlotsByRack(rackId).stream().map(s-> {
+                RackSlotDTO slotDto = new RackSlotDTO();
+                slotDto.setId(s.getId());
+                slotDto.setSlotNumber(s.getSlotNumber());
+                slotDto.setStatus(s.getStatus().toString());
+                return slotDto;
+            }).toList();
+        } catch(Exception e) {
+            throw new RuntimeException("Found exception while fetching slots for rack id: "+rackId);
+        }
+
     }
 
     public void assignHostToSlot(Long hostId, Long rackId, Short slot) {

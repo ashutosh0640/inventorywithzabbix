@@ -9,17 +9,17 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   rightIcon?: React.ReactNode;
 }
 
-const Input = forwardRef<HTMLInputElement, InputProps>(
+export const Input = forwardRef<HTMLInputElement, InputProps>(
   ({ 
-    label, 
-    error, 
-    helpText, 
-    fullWidth = false, 
-    leftIcon, 
-    rightIcon, 
-    className = '', 
+    label,
+    error,
+    helpText,
+    fullWidth = false,
+    leftIcon,
+    rightIcon,
+    className = '',
     id,
-    ...props 
+    ...props
   }, ref) => {
     const inputId = id || `input-${Math.random().toString(36).substring(2, 9)}`;
     const hasError = !!error;
@@ -83,4 +83,3 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
 
 Input.displayName = 'Input';
 
-export default Input;

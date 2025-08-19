@@ -7,8 +7,18 @@ interface ConfirmDeleteModalProps {
   itemName?: string;
 }
 
-const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose, onConfirm, itemName }) => {
+export const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose, onConfirm, itemName }) => {
   const [input, setInput] = useState('');
+
+  const handleConfirm = () => {
+    onConfirm();
+    setInput('');
+  }
+
+  const handleClose = () => {
+    onClose();
+    setInput('');
+  }
 
   if (!isOpen) return null;
 
@@ -29,11 +39,11 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose
         />
 
         <div className="flex justify-end space-x-2">
-          <button onClick={onClose} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">
+          <button onClick={handleClose} className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300">
             Cancel
           </button>
           <button
-            onClick={onConfirm}
+            onClick={handleConfirm}
             className={`px-4 py-2 rounded ${isValid ? 'bg-red-600 hover:bg-red-700 text-white' : 'bg-red-200 text-gray-500 cursor-not-allowed'}`}
             disabled={!isValid}
           >
@@ -45,4 +55,3 @@ const ConfirmDeleteModal: React.FC<ConfirmDeleteModalProps> = ({ isOpen, onClose
   );
 };
 
-export default ConfirmDeleteModal;

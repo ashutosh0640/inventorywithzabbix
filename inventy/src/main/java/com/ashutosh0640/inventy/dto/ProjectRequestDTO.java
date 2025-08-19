@@ -2,18 +2,9 @@ package com.ashutosh0640.inventy.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Set;
 
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class ProjectRequestDTO {
 
     @NotBlank(message = "Project name is required")
@@ -26,4 +17,44 @@ public class ProjectRequestDTO {
     private Set<Long> locationIds;
     private Set<Long> usersId;
 
+    public ProjectRequestDTO() {}
+
+    public ProjectRequestDTO(String name, String description, Set<Long> locationIds, Set<Long> usersId) {
+        this.name = name;
+        this.description = description;
+        this.locationIds = locationIds;
+        this.usersId = usersId;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public Set<Long> getLocationIds() {
+        return locationIds;
+    }
+
+    public void setLocationIds(Set<Long> locationIds) {
+        this.locationIds = locationIds;
+    }
+
+    public Set<Long> getUsersId() {
+        return usersId;
+    }
+
+    public void setUsersId(Set<Long> usersId) {
+        this.usersId = usersId;
+    }
 }

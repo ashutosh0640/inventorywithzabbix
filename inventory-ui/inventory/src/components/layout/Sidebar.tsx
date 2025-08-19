@@ -214,9 +214,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
           />
           <NavItem
             icon={<Server size={16} />}
-            label="Baremetal"
-            isActive={currentPath === '/inventory/baremetals'}
-            onClick={() => onNavigate('/inventory/baremetals')}
+            label="Devices"
+            isActive={currentPath === '/inventory/devices'}
+            onClick={() => onNavigate('/inventory/devices')}
           />
           <NavItem
             icon={<HardDrive size={16} />}
@@ -226,15 +226,9 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
           />
           <NavItem
             icon={<HardDrive size={16} />}
-            label="Virtual Machine"
-            isActive={currentPath === '/inventory/virtualmachines'}
-            onClick={() => onNavigate('/inventory/virtualmachines')}
-          />
-          <NavItem
-            icon={<Network size={16} />}
-            label="Network Devices"
-            isActive={currentPath === '/inventory/networks'}
-            onClick={() => onNavigate('/inventory/networks')}
+            label="Hosts"
+            isActive={currentPath === '/inventory/hosts'}
+            onClick={() => onNavigate('/inventory/hosts')}
           />
         </NavItem>
 

@@ -19,7 +19,7 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
 
     // 1. Get all projects assigned to a user
     @Query("SELECT p FROM Project p JOIN p.users u WHERE u.id = :userId")
-    List<Project> findAllByUserId(@Param("userId") Long userId);
+    List<Project> findAllByUser(@Param("userId") Long userId);
 
     // 2. Get a single project assigned to a user
     @Query("SELECT p FROM Project p JOIN p.users u WHERE u.id = :userId AND p.id = :projectId")

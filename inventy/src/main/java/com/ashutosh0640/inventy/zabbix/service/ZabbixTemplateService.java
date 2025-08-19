@@ -1,13 +1,9 @@
 package com.ashutosh0640.inventy.zabbix.service;
 
-import com.ashutosh0640.inventy.exception.ResourceNotFoundException;
-import com.ashutosh0640.inventy.zabbix.entity.ZabbixServer;
-import com.ashutosh0640.inventy.zabbix.repository.ZabbixServerRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;

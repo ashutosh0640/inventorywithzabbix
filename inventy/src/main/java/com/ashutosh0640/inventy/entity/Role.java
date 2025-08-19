@@ -2,15 +2,10 @@ package com.ashutosh0640.inventy.entity;
 
 import com.ashutosh0640.inventy.enums.RoleType;
 import jakarta.persistence.*;
-import lombok.*;
 
 import java.util.Set;
 
 @Entity
-@Getter
-@Setter
-@AllArgsConstructor
-@NoArgsConstructor
 public class Role {
 
     @Id
@@ -33,4 +28,44 @@ public class Role {
     )
     private Set<Permissions> permissions;
 
+    public Role() {}
+
+    public Role(int id, RoleType roleName, Set<User> users, Set<Permissions> permissions) {
+        this.id = id;
+        this.roleName = roleName;
+        this.users = users;
+        this.permissions = permissions;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public RoleType getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(RoleType roleName) {
+        this.roleName = roleName;
+    }
+
+    public Set<User> getUsers() {
+        return users;
+    }
+
+    public void setUsers(Set<User> users) {
+        this.users = users;
+    }
+
+    public Set<Permissions> getPermissions() {
+        return permissions;
+    }
+
+    public void setPermissions(Set<Permissions> permissions) {
+        this.permissions = permissions;
+    }
 }

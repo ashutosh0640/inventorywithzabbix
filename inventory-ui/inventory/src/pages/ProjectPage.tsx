@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useProjects, useCreateProject, useUpdateProject, useDeleteProject } from '../features/inventoryQuery/projectQuery';
+import { useProjects, useCreateProject, useUpdateProjectBUser, useDeleteProject } from '../features/inventoryQuery/projectQuery';
 import { useUsers } from '../features/inventoryQuery/userQuery';
 import { useLocations } from '../features/inventoryQuery/locationQuery';
 import type { Project, Location, User } from '../types/responseDto';
@@ -7,52 +7,44 @@ import type { ProjectReqDTO } from '../types/requestDto';
 import { ProjectCard } from '../components/ui/project/ProjectCard';
 import { ProjectTable } from '../components/ui/project/ProjectTable';
 import { ProjectForm } from '../components/ui/project/ProjectForm';
-// import AlertMsg from '../components/ui/AlertMsg';
-// import ConfirmDeleteModal from '../components/ui/ConfirmDeleteModel';
+import { AlertMessage } from '../components/ui/AlertMessage';
 import {
     Grid3X3,
     List,
     Plus,
     Search,
-    Filter,
     SortAsc
 } from 'lucide-react';
 
 type ViewMode = 'cards' | 'table';
+type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 const ProjectPage: React.FC = () => {
-    const { data: project,
-        isLoading: projectsLoading,
-        isError: projectsError,
-        error: projectsFetchError
-    } = useProjects();
+
+
+    const [alertMessage, setAlertMessage] = useState<string | null>(null);
+    const [alertType, setAlertType] = useState<AlertType | null>(null);
+
+    const { data: project = [] } = useProjects();
 
     const { data: user } = useUsers();
-
     const { data: location } = useLocations();
 
     const { mutate: createProject } = useCreateProject();
-    const { mutate: updateProject } = useUpdateProject();
+    const { mutate: updateProject } = useUpdateProjectBUser();
     const { mutate: deleteProject } = useDeleteProject();
 
-
-    const [projects, setProjects] = useState<Project[]>(project || []);
     const [users, setUsers] = useState<User[]>(user || []);
     const [locations, setLocations] = useState<Location[]>(location || []);
     const [viewMode, setViewMode] = useState<ViewMode>('table');
     const [searchTerm, setSearchTerm] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
     const [isFormOpen, setIsFormOpen] = useState(false);
-    // const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState<Project | null>(null);
-    const [addingProject, setAddingProject] = useState<ProjectReqDTO | null>(null);
 
     // Filter projects based on search and status
-    const filteredProjects = projects.filter(project => {
-        const matchesSearch = project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            project.description.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesStatus = statusFilter === 'all' || project.status === statusFilter;
-        return matchesSearch && matchesStatus;
+    const filteredProjects = project.filter(p => {
+        const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
+        return matchesSearch;
     });
 
     const handleEdit = (project: Project) => {
@@ -60,31 +52,27 @@ const ProjectPage: React.FC = () => {
         setIsFormOpen(true);
     };
 
-    // const handleDeletemodel = (projectId: number) => {
-    //     setIsDeleteModalOpen(true);
-    // };
-
-    // const closeDeleteModal = () => {
-    //     setIsDeleteModalOpen(false);
-    //     console.log('Delete modal closed', isDeleteModalOpen);
-    // }
 
     const handleDelete = (projectId: number) => {
-        console.log('Deleting project with ID:', projectId);
         deleteProject(projectId, {
             onSuccess: () => {
-                // setIsDeleteModalOpen(false);
-                setProjects(projects.filter(l => l.id !== projectId));
+                //setProjects(projects.filter(l => l.id !== projectId));
+                setAlertType('success');
+                setAlertMessage('Project deleted successfully.');
             },
             onError: (error) => {
-                console.error(error);
+                console.error(error.message);
+                setAlertType('error')
+                setAlertMessage(`Failed to delete location.`);
             },
-
         });
+        setTimeout(() => {
+            setAlertType(null);
+            setAlertMessage(null);
+        }, 3000);
     };
 
     const handleAddProject = () => {
-        setAddingProject(addingProject);
         setIsFormOpen(true);
     };
 
@@ -95,22 +83,40 @@ const ProjectPage: React.FC = () => {
             updateProject({
                 id: editingProject.id,
                 dto: projectData
+            }, {
+                onSuccess: (response) => {
+                    //setProjects(projects.map(project => project.id === response.id ? response : project));
+                    setAlertType('success');
+                    setAlertMessage(`Project ${response.name} updated successfully.`);
+                },
+                onError: (error) => {
+                    setAlertType('error');
+                    setAlertMessage('Failed to update project.');
+                }
             });
-            setIsFormOpen(false);
+
         } else {
             // Add new project
-            console.log('Creating new project:', projectData);
             createProject(projectData, {
-                onSuccess: (respones) => {
-                    setIsFormOpen(false);
-                    setProjects([...projects, respones]);
+                onSuccess: (response) => {
+                    //setProjects([...projects, response]);
+                    setAlertType('success');
+                    setAlertMessage(`Project ${response.name} created successfully.`);
                 },
                 onError: (error) => {
                     console.error('Error creating project:', error);
+                    setAlertType('error');
+                    setAlertMessage('Failed to update project.');
                 }
             });
 
         }
+        setIsFormOpen(false);
+        setEditingProject(null)
+        setTimeout(() => {
+            setAlertType(null);
+            setAlertMessage(null);
+        }, 3000);
     };
 
     const handleFormClose = () => {
@@ -121,27 +127,13 @@ const ProjectPage: React.FC = () => {
     useEffect(() => {
         setUsers(user || []);
         setLocations(location || []);
-        if (projectsLoading) {
-            console.log('Fetching projects...');
-        } else if (projectsError) {
-            console.warn('API not available, using demo data:', projectsFetchError);
-        } else if (project) {
-            setProjects(project);
-            console.log('Projects loaded:', project);
-        }
-    }, [projectsLoading, projectsError, projects, projectsFetchError]);
-
-    const statusOptions = [
-        { value: 'all', label: 'All Status' },
-        { value: 'active', label: 'Active' },
-        { value: 'completed', label: 'Completed' },
-        { value: 'on-hold', label: 'On Hold' },
-        { value: 'planning', label: 'Planning' },
-    ];
+        console.log("Project: ", project);
+        console.log("Filtered projects: ", filteredProjects);
+    }, [ project, filteredProjects]);
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-fit bg-gray-50">
+            <div className="max-w-7xl mx-auto ">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
@@ -162,7 +154,7 @@ const ProjectPage: React.FC = () => {
                 </div>
 
                 {/* Controls */}
-                <div className="mb-6 bg-white rounded-xl border border-gray-200 p-4">
+                <div className="mb-6 bg-white rounded-md border border-gray-200 p-2">
                     <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
                         {/* Search and Filter */}
                         <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-1">
@@ -175,20 +167,6 @@ const ProjectPage: React.FC = () => {
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                     className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                 />
-                            </div>
-                            <div className="relative">
-                                <select
-                                    value={statusFilter}
-                                    onChange={(e) => setStatusFilter(e.target.value)}
-                                    className="appearance-none bg-white border border-gray-200 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                >
-                                    {statusOptions.map(option => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
-                                <Filter size={16} className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none" />
                             </div>
                         </div>
 
@@ -226,7 +204,7 @@ const ProjectPage: React.FC = () => {
                 {/* Results Summary */}
                 <div className="mb-4">
                     <p className="text-sm text-gray-600">
-                        Showing {filteredProjects.length} of {projects.length} projects
+                        Showing {filteredProjects.length} of {project.length} projects
                     </p>
                 </div>
 
@@ -238,7 +216,7 @@ const ProjectPage: React.FC = () => {
                         </div>
                         <h3 className="text-lg font-medium text-gray-900 mb-2">No projects found</h3>
                         <p className="text-gray-500">
-                            {searchTerm || statusFilter !== 'all'
+                            {searchTerm 
                                 ? 'Try adjusting your search or filter criteria'
                                 : 'Get started by creating your first project'
                             }
@@ -274,26 +252,12 @@ const ProjectPage: React.FC = () => {
                 />
 
 
-                {/* Confirm Delete Modal */}
-                {/* <ConfirmDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => closeDeleteModal()}
-                    onConfirm={handleDelete}
-                    itemName={"Item"}
-                /> */}
-
-                {/* Alert Messages */}
-                {/* <AlertMsg
-                    message={{
-                        show: {},
-                        type: 'success',
-                        title: editingProject ? 'Project Updated' : 'Project Created',
-                        message: editingProject
-                            ? 'The project was updated successfully.'
-                            : 'The project was created successfully.'
-                    }}
-                    onClose={() => setEditingProject(null)}
-                /> */}
+                {alertMessage && (
+                    <AlertMessage
+                        message={alertMessage}
+                        type={alertType}
+                    />
+                )}
             </div>
 
         </div>

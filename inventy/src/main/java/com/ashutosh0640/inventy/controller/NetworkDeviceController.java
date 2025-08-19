@@ -27,13 +27,6 @@ public class NetworkDeviceController {
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<NetworkDeviceResponseDTO>> getByNameOrIpAndUser(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String ip) {
-        List<NetworkDeviceResponseDTO> response = networkDeviceService.getByNameOrIpAndUser(name, ip);
-        return ResponseEntity.ok(response);
-    }
 
     @GetMapping("/rack/{rackId}")
     public ResponseEntity<List<NetworkDeviceResponseDTO>> getByRackAndUser(@PathVariable Long rackId) {

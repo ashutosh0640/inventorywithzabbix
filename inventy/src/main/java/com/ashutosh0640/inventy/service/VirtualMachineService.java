@@ -133,9 +133,7 @@ public class VirtualMachineService {
             List<VirtualMachines> virtualMachines = virtualMachineRepository.findAll();
 
             return virtualMachines.stream()
-                    .map(vm->{
-                        return VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers());
-                    })
+                    .map(vm-> VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers()))
                     .collect(Collectors.toList());
 
         } catch (Exception ex) {
@@ -165,9 +163,7 @@ public class VirtualMachineService {
             List<VirtualMachines> virtualMachines = virtualMachineRepository.findAll(sort);
 
             return virtualMachines.stream()
-                    .map(vm->{
-                        return VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers());
-                    })
+                    .map(vm-> VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers()))
                     .collect(Collectors.toList());
 
         } catch (Exception ex) {
@@ -251,9 +247,7 @@ public class VirtualMachineService {
             }
 
             return virtualMachines.stream()
-                    .map(vm->{
-                        return VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers());
-                    })
+                    .map(vm-> VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers()))
                     .collect(Collectors.toList());
 
         } catch (Exception ex) {
@@ -287,9 +281,7 @@ public class VirtualMachineService {
     public void addUsersToVM(Long vmId, List<Long> userIds) {
         LOGGER.info("Adding user to virtual machine with ID: {}", vmId);
         try {
-            userIds.forEach(userId ->{
-                virtualMachineRepository.addUserToVm(vmId, userId);
-            });
+            userIds.forEach(userId -> virtualMachineRepository.addUserToVm(vmId, userId));
             LOGGER.info("Successfully added users to virtual machine with ID: {}", vmId);
         } catch (Exception ex) {
             LOGGER.error("Error while adding user to virtual platform id {}: ", vmId, ex);
@@ -302,9 +294,7 @@ public class VirtualMachineService {
     public void removeUsersFromVm(Long vmId, List<Long> userIds) {
         LOGGER.info("Finding virtual machine with ID: {}", vmId);
         try {
-                userIds.forEach(userId ->{
-                    virtualMachineRepository.removeUserFromVm(vmId, userId);
-                });
+                userIds.forEach(userId -> virtualMachineRepository.removeUserFromVm(vmId, userId));
             LOGGER.info("Successfully removed from virtual machine with ID: {}", vmId);
 
         } catch (Exception ex) {
@@ -327,9 +317,7 @@ public class VirtualMachineService {
             List<VirtualMachines> virtualMachines = virtualMachineRepository.findAllByUser(userId);
 
             return virtualMachines.stream()
-                    .map(vm->{
-                        return VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers());
-                    })
+                    .map(vm-> VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers()))
                     .collect(Collectors.toList());
 
         } catch (Exception ex) {
@@ -389,7 +377,7 @@ public class VirtualMachineService {
             vm.setStorageSize(dto.getStorageSize());
             vm.setStorageSizeUnit(StorageUnit.valueOf(dto.getStorageSizeUnit()));
 
-            if (dto.getVpId() != vm.getVirtualizations().getId()) {
+            if (!dto.getVpId().equals( vm.getVirtualizations().getId())) {
                 Virtualizations v = virtualizationPlatformRepository.findById(dto.getVpId())
                         .orElseThrow(() -> new ResourceNotFoundException("Virtual Platform not found by id: "+ dto.getVpId()));
                 vm.setVirtualizations(v);
@@ -416,9 +404,7 @@ public class VirtualMachineService {
             Pageable pageable = PageRequest.of(effectivePageNumber, effectivePageSize);
             Page<VirtualMachines> virtualMachinesPage = virtualMachineRepository.findAllByUserPaginated(userId, pageable);
 
-            return virtualMachinesPage.map(vm->{
-                return VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers());
-            });
+            return virtualMachinesPage.map(vm-> VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers()));
 
         } catch (Exception ex) {
             LOGGER.error("Error fetching paginated virtualMachines: ", ex);
@@ -439,9 +425,7 @@ public class VirtualMachineService {
 
             Page<VirtualMachines> virtualMachinesPage = virtualMachineRepository.searchByNameAndUser(name, userId, pageable);
 
-            return virtualMachinesPage.map(vm->{
-                return VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers());
-            });
+            return virtualMachinesPage.map(vm-> VirtualMachineMapper.toDTO(vm, vm.getInterfaces(), vm.getVirtualizations(), vm.getUsers()));
 
         } catch (Exception ex) {
             LOGGER.error("Error fetching paginated virtualMachines for user with user id: {} ", userId, ex);

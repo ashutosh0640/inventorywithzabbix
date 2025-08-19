@@ -17,7 +17,6 @@ import java.util.Optional;
 @Repository
 public interface VirtualizationRepository extends JpaRepository<Virtualizations, Long> {
 
-    List<Virtualizations> findByHostNameContainingIgnoreCase(String name);
 
     @Query("SELECT vp FROM Virtualizations vp " +
             "JOIN vp.interfaces i " +
@@ -37,9 +36,6 @@ public interface VirtualizationRepository extends JpaRepository<Virtualizations,
     @Query("SELECT vp FROM Virtualizations vp JOIN vp.users u WHERE u.id = :userId")
     Page<Virtualizations> findAllByUser(@Param("userId") Long userId, Pageable pageable);
 
-    // Search by virtual platform name (partial match) for a user with pagination
-    @Query("SELECT vp FROM Virtualizations vp JOIN vp.users u WHERE u.id = :userId AND LOWER(vp.hostName) LIKE LOWER(CONCAT('%', :hostName, '%'))")
-    Page<Virtualizations> searchByNameAndUser(@Param("hostName") String hostName, @Param("userId") Long userId, Pageable pageable);
 
 
     @Query("SELECT vp FROM Virtualizations vp " +

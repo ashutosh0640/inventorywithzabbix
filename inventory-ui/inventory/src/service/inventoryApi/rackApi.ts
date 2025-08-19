@@ -1,6 +1,6 @@
 import api from '../inventoryapi';
 import type { RackReqDTO } from '../../types/requestDto';
-import type { Rack, Page } from '../../types/responseDto';
+import type { Rack, RackSlot, Page } from '../../types/responseDto';
 
 
 
@@ -24,6 +24,10 @@ export const racksAPI = {
     },
     getPaged: async (page: number, size: number): Promise<Page<Rack>> => {
         const response = await api.get(`/api/v1/rack/paged?page=${page}&size=${size}`);
+        return response.data;
+    },
+    getSlotByRack: async (rackId: number): Promise<RackSlot[]> => {
+        const response = await api.get(`/api/v1/rack/slot/${rackId}`);
         return response.data;
     },
     searchByName: async (name: string) => {
@@ -67,7 +71,7 @@ export const racksAPI = {
         return response.data;
     },
     updateForUser: async (id: number, rackData: RackReqDTO) => {
-        const response = await api.put(`/api/v1/rack/${id}/users/update`, rackData);
+        const response = await api.put(`/api/v1/rack/${id}/update/users`, rackData);
         return response.data;
     },
     patchLocation: async (id: number, locationId: number) => {

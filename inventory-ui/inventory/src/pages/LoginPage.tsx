@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppDispatch } from '../slice/hooks';
 import { EyeClosed, Eye, Database, AlertCircle } from 'lucide-react';
-import Input from '../components/ui/Input';
+import { Input } from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import type { LoginReqDTO } from '../types/requestDto';
 import { useLogin } from '../features/inventoryQuery/authQuery';
@@ -176,7 +176,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
                             >
                                 {isPending ? 'Logging in...' : 'Login'}
                             </Button>
-                            {isError && <p style={{ color: 'red' }}>{loginErr?.message}</p>}
+                            {/* {isError && <p style={{ color: 'red' }}>{loginErr?.message}</p>} */}
                         </div>
                     </form>
                 </div>

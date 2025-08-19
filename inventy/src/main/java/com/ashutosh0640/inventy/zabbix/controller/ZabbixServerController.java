@@ -88,8 +88,8 @@ public class ZabbixServerController {
     }
 
 
-    @DeleteMapping("/id")
-    public void deleteEntityById(@RequestParam Long id) {
+    @DeleteMapping("/{id}")
+    public void deleteEntityById(@PathVariable Long id) {
         zabbixServerService.deleteEntityById(id);
     }
 

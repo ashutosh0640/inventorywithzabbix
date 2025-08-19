@@ -6,18 +6,12 @@ import {
 import { locationsAPI } from '../../service/inventoryApi/locationApi';
 import type { Location } from '../../types/responseDto'
 import type { LocationReqDTO } from '../../types/requestDto';
+import { useAppSelector } from '../../slice/hooks';
 // import type { Location } from '../../types/responseDto';
 
 
 const LOCATIONS = 'Locations' as const;
 
-interface LocationResourceCount {
-    locationName: string;
-    rackCount: number;
-    bareMetalCount: number;
-    virtualMachineCount: number;
-    virtualPlatformCount: number;
-}
 
 const queryKeys = {
     base: [LOCATIONS] as const,
@@ -33,10 +27,15 @@ const queryKeys = {
 // -----------------------------------------------------------------------------
 // READ HOOKS
 // -----------------------------------------------------------------------------
-export const useLocations = () =>
-    useQuery({ queryKey: queryKeys.list(),
+export const useLocations = () => {
+
+    return useQuery<Location[], Error>({
+        queryKey: queryKeys.list(),
         queryFn: locationsAPI.getAll
     });
+
+}
+    
 
 export const useLocation = (id: number) =>
     useQuery({
@@ -66,11 +65,18 @@ export const useSearchLocations = (
 
     });
 
-export const useLocationsForUser = () =>
-    useQuery<Location[]>({
-        queryKey: queryKeys.userList(),
-        queryFn: locationsAPI.getLocationsForUser
-    });
+
+// find locations by user
+export const useLocationsForUser = () => {
+    const loginDetails = useAppSelector((state) => state.auth.loginDetails);
+    return useQuery<Location[], Error>({
+        queryKey: [...queryKeys.userList(), loginDetails?.id],
+        queryFn: async () => {
+            const response = await locationsAPI.getLocationsForUser();
+            return response;
+        }
+    })
+}
 
 export const useLocationsForUserPaged = (page: number, size: number) =>
     useQuery({
@@ -131,10 +137,7 @@ export const useUpdateLocation = () => {
     return useMutation({
         mutationFn: ({ id, dto }: { id: number; dto: LocationReqDTO }) =>
             locationsAPI.update(id, dto),
-        onSuccess: (_, { id }) => {
-            qc.invalidateQueries({ queryKey: queryKeys.detail(id) });
-            invalidateLists(qc);
-        }
+        onSuccess: () => invalidateLists(qc)
     });
 };
 
@@ -143,8 +146,7 @@ export const useUpdateLocationForUser = () => {
     return useMutation({
         mutationFn: ({ id, dto }: { id: number; dto: LocationReqDTO }) =>
             locationsAPI.updateForUser(id, dto),
-        onSuccess: (_, { id }) =>
-            qc.invalidateQueries({ queryKey: queryKeys.detail(id) })
+        onSuccess: () => invalidateLists(qc)
     });
 };
 
@@ -157,8 +159,7 @@ const usePatchUsers = (
     return useMutation({
         mutationFn: ({ id, userIds }: { id: number; userIds: Set<number> }) =>
             apiFn(id, userIds),
-        onSuccess: (_, { id }) =>
-            qc.invalidateQueries({ queryKey: queryKeys.detail(id) })
+        onSuccess: () => invalidateLists(qc)
     });
 };
 

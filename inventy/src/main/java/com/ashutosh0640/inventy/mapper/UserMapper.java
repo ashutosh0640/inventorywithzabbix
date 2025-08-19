@@ -21,8 +21,8 @@ public class UserMapper {
         user.setPassword(dto.getPassword());
         user.setPhoneNumber(dto.getPhoneNumber() != null ? dto.getPhoneNumber() : "");
         user.setRole(role);
-        user.setIsActive(dto.getIsActive() != null ? dto.getIsActive() : true);
-        user.setIsBlocked(dto.getIsBlocked() != null ? dto.getIsBlocked() : false);
+        user.setActive(dto.getActive() != null ? dto.getActive() : true);
+        user.setBlocked(dto.getBlocked() != null ? dto.getBlocked() : false);
         user.setLastActive(LocalDateTime.now());
 
         if (dto.getProfilePicture() != null) {
@@ -41,8 +41,8 @@ public class UserMapper {
         dto.setFullName(user.getFullName());
         dto.setEmail(user.getEmail());
         dto.setPhoneNumber(user.getPhoneNumber());
-        dto.setIsActive(user.getIsActive());
-        dto.setIsBlocked(user.getIsBlocked());
+        dto.setActive(user.getActive());
+        dto.setBlocked(user.getBlocked());
         dto.setLastActive(user.getLastActive());
         dto.setProfilePictureUrl(user.getProfilePictureUrl());
         dto.setCreatedAt(user.getCreatedAt());

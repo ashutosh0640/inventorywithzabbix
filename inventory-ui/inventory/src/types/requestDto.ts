@@ -1,3 +1,4 @@
+import type { DelHTMLAttributes } from "react";
 
 export interface UserReqDTO {
     username: string;
@@ -71,7 +72,6 @@ export interface InterfacesDTO {
     gateway: string;
     primaryDns: string;
     secondaryDns: string;
-    status: string;
 }
 
 export interface BareMetalReqDTO {
@@ -87,12 +87,13 @@ export interface BareMetalReqDTO {
     userIds: number[];
 }
 
-export interface NetworkDevicReqeDTO {
+export interface NetworkDeviceReqDTO {
     name: string;
     type: string;
     manufacturer: string;
     model: string;
     serialNumber: string;
+    osVersion: string;
     numberOfPort: number;
     interfaces: InterfacesDTO[];
     rackId: number;
@@ -135,7 +136,7 @@ export type HostType =
     | 'SWITCH'
     | 'ROUTER'
     | 'FIREWALL'
-    | 'ACCESS_POINT'
+    | 'ACCESS_POINT';
 
 export type ManagementType =
     | 'ILO'
@@ -145,7 +146,23 @@ export type ManagementType =
     | 'RMM'
     | 'CIMC'
     | 'BMC_GENERIC'
-    | 'OTHER'
+    | 'OTHER';
 
 
-
+export type ServerVendor =
+    | 'Dell'
+    | 'HPE'
+    | 'Lenovo'
+    | 'Cisco'
+    | 'Supermicro'
+    | 'Fujitsu'
+    | 'IBM'
+    | 'Oracle'
+    | 'Huawei'
+    | 'Alibaba'
+    | 'CyberLogic'
+    | 'Fujitsu'
+    | 'Intel'
+    | 'Samsung'
+    | 'MSI'
+    | 'Gigabyte';

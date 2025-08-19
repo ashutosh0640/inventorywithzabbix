@@ -27,10 +27,9 @@ public class VirtualizationsController {
     @PreAuthorize("hasPermission(null, 'VP', 'WRITE')")
     @PostMapping
     public ResponseEntity<VirtualizationsResponseDTO> save(@RequestBody VirtualizationsRequestDTO dto) {
-            LOGGER.info("Received request to save virtualizationPlatform: {}", dto.getName());
+            LOGGER.info("Received request to save virtualizationPlatform");
             VirtualizationsResponseDTO savedVirtualizationPlatform = virtualizationService.save(dto);
             return new ResponseEntity<>(savedVirtualizationPlatform, HttpStatus.CREATED);
-
     }
 
 
@@ -120,19 +119,6 @@ public class VirtualizationsController {
     }
 
 
-    @PreAuthorize("hasPermission(null, 'VP', 'READ')")
-    @GetMapping("/search")
-    public ResponseEntity<List<VirtualizationsResponseDTO>> searchByName(@RequestParam String name) {
-        try {
-            LOGGER.info("Received request to search virtualizationPlatforms with name: {}", name);
-            List<VirtualizationsResponseDTO> virtualizationPlatforms = virtualizationService.searchByName(name);
-            return ResponseEntity.ok(virtualizationPlatforms);
-        } catch (RuntimeException ex) {
-            LOGGER.error("Error searching virtualizationPlatforms with name: {}", name, ex);
-            throw new RuntimeException("Error searching virtualizationPlatforms: " + ex.getMessage());
-        }
-    }
-
 
     @PreAuthorize("hasPermission(#vpId, 'VP', 'EDIT')")
     @PostMapping("/{vp_id}/add-users")
@@ -192,16 +178,6 @@ public class VirtualizationsController {
         return ResponseEntity.ok(dto);
     }
 
-    @PreAuthorize("hasPermission(null, 'VP', 'READ')")
-    @GetMapping("/search/paged")
-    public ResponseEntity<Page<VirtualizationsResponseDTO>> searchByNameAndUserPaginated(
-            @RequestParam String name,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "10") Integer size) {
-        LOGGER.info("Received request to get all virtual platform in page assign to user.");
-        Page<VirtualizationsResponseDTO> dto = virtualizationService.searchByNameAndUserPaginated(name, page, size);
-        return ResponseEntity.ok(dto);
-    }
 
     @PreAuthorize("hasPermission(null, 'VP', 'READ')")
     @GetMapping("/count")

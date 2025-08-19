@@ -10,3 +10,9 @@
 .blink {
   animation: blink 1s infinite;
 }
+
+
+body {
+  background: #507a66;
+  background: linear-gradient(90deg, rgba(80, 122, 102, 1) 0%, rgba(120, 95, 100, 1) 35%, rgba(89, 134, 212, 1) 100%);
+}

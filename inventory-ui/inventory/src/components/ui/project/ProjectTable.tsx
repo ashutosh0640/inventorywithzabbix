@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import type { Project } from '../../../types/responseDto';
-import { Calendar, MapPin, Users, Edit, Trash2, MoreHorizontal } from 'lucide-react';
+import { ConfirmDeleteModal } from '../ConfirmDeleteModel';
+import { LoadingSkeleton } from '../LoadingSkeleton';
+import { Calendar, MapPin, Edit, Trash2 } from 'lucide-react';
 
 interface ProjectTableProps {
   projects: Project[];
@@ -8,21 +10,35 @@ interface ProjectTableProps {
   onDelete: (projectId: number) => void;
 }
 
-const statusColors: Record<string, string> = {
-  active: 'bg-green-100 text-green-800',
-  completed: 'bg-blue-100 text-blue-800',
-  'on-hold': 'bg-yellow-100 text-yellow-800',
-  planning: 'bg-purple-100 text-purple-800',
-};
+
 
 export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, onDelete }) => {
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    }).format(date);
+
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [locationToDelete, setLocationToDelete] = useState<number | null>(null);
+
+  const openModal = (locationId: number) => {
+    setLocationToDelete(locationId);
+    setIsModalOpen(true);
   };
+
+  const handleModelClose = () => {
+    setIsModalOpen(false);
+  }
+
+  const handleDelete = () => {
+    if (locationToDelete !== null) {
+      onDelete(locationToDelete);
+      setIsModalOpen(false);
+      setLocationToDelete(null);
+    }
+  };
+
+  if (!projects) {
+        return (
+            <LoadingSkeleton />
+        )
+    }
 
   return (
     <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -30,22 +46,19 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
         <table className="w-full">
           <thead className="bg-gray-50 border-b border-gray-200">
             <tr>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Project
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                Status
-              </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Created
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Locations
               </th>
-              <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-2 py-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Team
               </th>
-              <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              <th className="px-2 py-2 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
@@ -53,29 +66,24 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
           <tbody className="divide-y divide-gray-200">
             {projects.map((project) => (
               <tr key={project.id} className="hover:bg-gray-50 transition-colors">
-                <td className="px-6 py-4">
+                <td className="p-2">
                   <div>
-                    <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                    <h3 className="text-xs font-semibold text-gray-900 mb-1">
                       {project.name}
                     </h3>
-                    <p className="text-sm text-gray-500 line-clamp-1">
+                    <p className="text-xs text-gray-500 line-clamp-1">
                       {project.description}
                     </p>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColors["active"]}`}>
-                    {/* {project.status.charAt(0).toUpperCase() + project.status.slice(1)} */}Active
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center text-sm text-gray-600">
+                <td>
+                  <div className="flex items-center text-xs text-gray-600">
                     <Calendar size={14} className="mr-1 text-gray-400" />
                     {(project.createdAt).split('T')[0]}
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center text-sm text-gray-600">
+                <td>
+                  <div className="flex items-center text-xs text-gray-600">
                     <MapPin size={14} className="mr-1 text-gray-400" />
                     <span className="line-clamp-1">
                       {project.location?.length ?? 0} location{project.location?.length !== 1 ? 's' : ''}
@@ -87,7 +95,7 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
                     </div>
                   )}
                 </td>
-                <td className="px-6 py-4">
+                <td>
                   <div className="flex items-center">
                     <div className="flex -space-x-1 mr-2">
                       {project.user?.slice(0, 3).map((user) => (
@@ -110,8 +118,8 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
                     </span>
                   </div>
                 </td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-end space-x-1">
+                <td>
+                  <div className="flex items-center justify-center space-x-1">
                     <button
                       onClick={() => onEdit(project)}
                       className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -120,14 +128,11 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
                       <Edit size={16} />
                     </button>
                     <button
-                      onClick={() => onDelete(project.id)}
+                      onClick={() => openModal(project.id)}
                       className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Delete project"
                     >
                       <Trash2 size={16} />
-                    </button>
-                    <button className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition-colors">
-                      <MoreHorizontal size={16} />
                     </button>
                   </div>
                 </td>
@@ -136,6 +141,12 @@ export const ProjectTable: React.FC<ProjectTableProps> = ({ projects, onEdit, on
           </tbody>
         </table>
       </div>
-    </div>
+      {/* Delete Confirmation Modal */}
+      <ConfirmDeleteModal
+        isOpen={isModalOpen}
+        onClose={handleModelClose}
+        onConfirm={handleDelete}
+      />
+    </div >
   );
 };

@@ -27,11 +27,11 @@ public class InterfaceService {
 
     public InterfaceService(InterfaceRepository interfaceRepository,
                             ActivityLogService activityLogService,
-                            ExecutorService executor) {
+                            ExecutorService executor
+    ) {
         this.interfaceRepository = interfaceRepository;
         this.activityLogService = activityLogService;
         this.executor = executor;
-
     }
 
     public Interfaces createEntity(Interfaces intf) {
@@ -52,18 +52,19 @@ public class InterfaceService {
         }
     }
 
-    public void createAllEntity(Set<Interfaces> intfs) {
+    public List<Interfaces> createAllEntity(Set<Interfaces> intfs) {
         if ( intfs == null ) {
             LOGGER.warn("List of interface is null.");
             throw new InvalidParameterException("List of interface is null.");
         }
         
         try {
-            interfaceRepository.saveAll(intfs);
+
             activityLogService.createEntity(
                     ActivityType.WRITE,
                     intfs.size()+" interfaces are created."
             );
+            return interfaceRepository.saveAll(intfs);
         } catch (Exception ex) {
             LOGGER.error("Found exception while saving interface entities.");
             throw new RuntimeException("Found exception while saving interface entities.");
@@ -73,7 +74,7 @@ public class InterfaceService {
     public Interfaces getEntityById(Long id) {
         if ( id == null ) {
             LOGGER.warn("Id is null.");
-            throw new InvalidParameterException("Id is null." + id);
+            throw new InvalidParameterException("Interface id is null.");
         }
         try {
             return interfaceRepository.findById(id)
@@ -82,7 +83,6 @@ public class InterfaceService {
             LOGGER.error("Found error while fetching interface by id: {}",id);
             throw new RuntimeException("Found error while fetching interface by id: "+id);
         }
-
     }
 
     public List<Interfaces> getAllEntity() {
@@ -149,18 +149,20 @@ public class InterfaceService {
 
 
     public static boolean isHostReachable(String ip) {
-        System.out.println("Checking host reachability: "+ip);
-        String os = System.getProperty("os.name").toLowerCase();
-        String command = os.contains("win") ?
-                "ping -n 1 -w 1000 " + ip :
-                "ping -c 1 -W 1 " + ip;
-
-        try {
-            Process process = Runtime.getRuntime().exec(command);
-            return process.waitFor() == 0;
-        } catch (Exception e) {
-            return false;
+        if (ip != null) {
+            System.out.println("Checking reachability: "+ ip);
+            String os = System.getProperty("os.name").toLowerCase();
+            String command = os.contains("win") ?
+                    "ping -n 1 -w 1000 " + ip :
+                    "ping -c 1 -W 1 " + ip;
+            try {
+                Process process = Runtime.getRuntime().exec(command);
+                return process.waitFor() == 0;
+            } catch (Exception e) {
+                return false;
+            }
         }
+        return false;
     }
 
 

@@ -190,7 +190,7 @@ public class JWTService {
         LOGGER.info("Finding token expiration date.");
         try {
             if (token == null) {
-                LOGGER.warn("Token is null");
+                LOGGER.warn("JWT Token is null");
                 throw new IllegalArgumentException("Token is null");
             }
             return extractClaim(token, Claims::getExpiration);

@@ -1,6 +1,5 @@
 package com.ashutosh0640.inventy.exception;
 
-import com.ashutosh0640.inventy.controller.BareMetalController;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

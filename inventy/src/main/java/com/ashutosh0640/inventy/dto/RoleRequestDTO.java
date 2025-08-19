@@ -1,17 +1,9 @@
 package com.ashutosh0640.inventy.dto;
 
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.Set;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
 public class RoleRequestDTO {
 
     @NotBlank(message = "Role name is required.")
@@ -19,4 +11,26 @@ public class RoleRequestDTO {
 
     private Set<Long> permissionId;
 
+    public RoleRequestDTO() {    }
+
+    public RoleRequestDTO(String roleName, Set<Long> permissionId) {
+        this.roleName = roleName;
+        this.permissionId = permissionId;
+    }
+
+    public String getRoleName() {
+        return roleName;
+    }
+
+    public void setRoleName(String roleName) {
+        this.roleName = roleName;
+    }
+
+    public Set<Long> getPermissionId() {
+        return permissionId;
+    }
+
+    public void setPermissionId(Set<Long> permissionId) {
+        this.permissionId = permissionId;
+    }
 }

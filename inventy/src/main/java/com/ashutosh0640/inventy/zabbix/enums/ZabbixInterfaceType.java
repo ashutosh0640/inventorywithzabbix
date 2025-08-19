@@ -1,6 +1,5 @@
 package com.ashutosh0640.inventy.zabbix.enums;
 
-import lombok.Data;
 
 import java.util.Arrays;
 import java.util.List;

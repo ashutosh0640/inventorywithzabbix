@@ -4,15 +4,14 @@ import {
   Server, 
   Network, 
   Edit, 
-  Trash2, 
-  MapPin, 
+  Trash2,
   HardDrive,
   Router,
   Shield,
   Wifi,
 } from 'lucide-react';
 
-type Type = 'PHYSICAL_SERVER' | 'NETWORD_DEVICE' 
+type Type = 'PHYSICAL_SERVER' | 'NETWORK_DEVICE' 
 
 interface DeviceTableProps {
   type: Type;
@@ -70,25 +69,29 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
       <table className="w-full">
         <thead className="bg-gray-50 border-b border-gray-200">
           <tr>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {type === 'PHYSICAL_SERVER' ? 'Server Name' : 'Device Name'}
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              Vendor
+            </th>
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               {type === 'PHYSICAL_SERVER' ? 'Model' : 'Type'}
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+              {/* <MapPin size={14} className="mr-1 text-gray-400" /> */}
               Location
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Rack
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Slot Position
             </th>
-            <th className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Status
             </th>
-            <th className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
+            <th className="p-2 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">
               Actions
             </th>
           </tr>
@@ -96,7 +99,7 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
         <tbody className="divide-y divide-gray-200">
           {equipment.map((item) => (
             <tr key={item.id} className="hover:bg-gray-50 transition-colors">
-              <td className="px-6 py-4">
+              <td className="p-2">
                 <div className="flex items-center">
                   {type === 'PHYSICAL_SERVER' ? (
                     <Server size={16} className="text-blue-600 mr-3" />
@@ -108,7 +111,12 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                   <span className="font-medium text-gray-900">{item.name}</span>
                 </div>
               </td>
-              <td className="px-6 py-4">
+              <td className="p-2">
+                <span className="text-sm font-medium text-gray-900">
+                  {item.manufacturer}
+                </span>
+              </td>
+              <td className="p-2">
                 <span className="text-sm text-gray-600">
                   {type === 'PHYSICAL_SERVER' 
                     ? (item as BareMetal).modelName
@@ -116,29 +124,29 @@ export const DeviceTable: React.FC<DeviceTableProps> = ({
                   }
                 </span>
               </td>
-              <td className="px-6 py-4">
+              <td className="p-2">
                 <div className="flex items-center text-sm text-gray-600">
-                  <MapPin size={14} className="mr-1 text-gray-400" />
+                  
                   <span>{item.rack.location.name}</span>
                 </div>
               </td>
-              <td className="px-6 py-4">
+              <td className="p-2">
                 <div className="flex items-center text-sm text-gray-600">
                   <HardDrive size={14} className="mr-1 text-gray-400" />
                   <span>{item.name}</span>
                 </div>
               </td>
-              <td className="px-6 py-4">
+              <td className="p-2">
                 <span className="text-sm font-medium text-gray-900">
                   Slot {item.rackSlotNumber}
                 </span>
               </td>
-              <td className="px-6 py-4">
-                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.interfaces[0].status)}`}>
+              <td className="p-2">
+                {/* <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(item.interfaces[0].status)}`}>
                   {item.interfaces[0].status.charAt(0).toUpperCase() + item.interfaces[0].status.slice(1)}
-                </span>
+                </span> */}
               </td>
-              <td className="px-6 py-4">
+              <td className="p-2">
                 <div className="flex items-center justify-end space-x-1">
                   <button
                     onClick={() => onEdit(item)}

@@ -70,7 +70,7 @@ public class VirtualizationsService {
 
             activityLogService.createEntity(
                     ActivityType.WRITE,
-                    "A Virtualization platform is created. Name: "+dto.getName()
+                    "A Virtualization platform is created."
             );
             LOGGER.info("Saving virtualizationPlatform: {}", vp);
             return VirtualizationsMapper.toDTO(vp, vp.getInterfaces(), vp.getBareMetalServer(), vp.getVirtualMachines(), vp.getUsers());
@@ -184,7 +184,6 @@ public class VirtualizationsService {
                     .orElseThrow(() -> new ResourceNotFoundException("VirtualizationPlatform not found with ID: " + id));
 
             // Update fields
-            vp.setHostName(dto.getName());
             vp.setHostType(HostType.valueOf(dto.getHostType().toUpperCase()));
             vp.setType(VirtualizationType.valueOf(dto.getType()));
             vp.setRamSize(dto.getRamSize());
@@ -228,26 +227,6 @@ public class VirtualizationsService {
         }
     }
 
-    public List<VirtualizationsResponseDTO> searchByName(String name) {
-        try {
-            LOGGER.info("Searching virtualizationPlatforms by name: {}", name);
-
-            List<Virtualizations> virtualizationPlatforms = virtualizationsRepository.findByHostNameContainingIgnoreCase(name);
-
-            if (virtualizationPlatforms.isEmpty()) {
-                LOGGER.warn("No virtualizationPlatforms found with name: {}", name);
-                throw new ResourceNotFoundException("No virtualizationPlatforms found matching: " + name);
-            }
-
-            return virtualizationPlatforms.stream()
-                    .map(vp-> VirtualizationsMapper.toDTO(vp, vp.getInterfaces(), vp.getBareMetalServer(), vp.getVirtualMachines(), vp.getUsers()))
-                    .collect(Collectors.toList());
-
-        } catch (Exception ex) {
-            LOGGER.error("Error searching virtualizationPlatforms by name {}: ", name, ex);
-            throw new RuntimeException("Failed to search virtualizationPlatforms. Reason: " + ex.getMessage());
-        }
-    }
 
     @Transactional
     public void addUsersToVP(Long vpId, List<Long> userIds) {
@@ -344,7 +323,7 @@ public class VirtualizationsService {
             Virtualizations vp = virtualizationsRepository.findByUser(userId, vpId)
                     .orElseThrow(() -> new ResourceNotFoundException("Virtualization Platform not found or not authorized for update"));
 
-            vp.setHostName(dto.getName());
+
             vp.setHostType(HostType.valueOf(dto.getHostType().toUpperCase()));
             vp.setType(VirtualizationType.valueOf(dto.getType()));
             vp.setRamSize(dto.getRamSize());
@@ -388,26 +367,6 @@ public class VirtualizationsService {
         }
     }
 
-    public Page<VirtualizationsResponseDTO> searchByNameAndUserPaginated(String name, int pageSize, int pageNumber) {
-        final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
-        try {
-            LOGGER.info("Searching virtualizationPlatforms by name '{}' for userId: {}", name, userId);
-
-            // Default to page size 10 if not provided
-            int effectivePageSize = (pageSize <= 0) ? 10 : pageSize;
-            int effectivePageNumber = Math.max(pageNumber, 0);
-
-            Pageable pageable = PageRequest.of(effectivePageNumber, effectivePageSize);
-
-            Page<Virtualizations> virtualizationPlatformsPage = virtualizationsRepository.searchByNameAndUser(name, userId, pageable);
-
-            return virtualizationPlatformsPage.map(vp-> VirtualizationsMapper.toDTO(vp, vp.getInterfaces(), vp.getBareMetalServer(), vp.getVirtualMachines(), vp.getUsers()));
-
-        } catch (Exception ex) {
-            LOGGER.error("Error fetching paginated virtualizationPlatforms for user with user id: {} ", userId, ex);
-            throw new RuntimeException("Failed to retrieve virtualizationPlatforms. Reason: " + ex.getMessage());
-        }
-    }
 
     public long countByUser() {
         final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();

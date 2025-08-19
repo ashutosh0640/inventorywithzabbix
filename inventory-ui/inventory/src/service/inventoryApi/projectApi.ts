@@ -14,9 +14,9 @@ export const projectsAPI = {
         return response.data;
     },
 
-    // GET: Fetch all projects
+    // GET: Fetch all projects by user
     getAll: async () => {
-        const response = await api.get('/api/v1/project');
+        const response = await api.get('/api/v1/project/user');
         return response.data;
     },
 
@@ -65,6 +65,11 @@ export const projectsAPI = {
     // PUT: Update project details
     update: async (id: number, dto: ProjectReqDTO) => {
         const response = await api.put(`/api/v1/project/${id}`, dto);
+        return response.data;
+    },
+
+    updateByUser: async (id: number, dto: ProjectReqDTO) => {
+        const response = await api.put(`/api/v1/project/${id}/update/users`, dto);
         return response.data;
     },
 

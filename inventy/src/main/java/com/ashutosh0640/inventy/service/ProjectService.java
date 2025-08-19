@@ -425,7 +425,7 @@ public class ProjectService {
 
             LOGGER.info("Fetching all projects for userId: {}", userId);
 
-            List<Project> projects = projectRepository.findAllByUserId(userId);
+            List<Project> projects = projectRepository.findAllByUser(userId);
 
             return projects.stream()
                     .map(p->{

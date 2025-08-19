@@ -1,5 +1,5 @@
 import api from '../inventoryapi';
-import type { NetworkDeviceDTO } from '../../types/requestDto';
+import type { NetworkDeviceReqDTO } from '../../types/requestDto';
 
 export const networkDeviceAPI = {
     getAll: async () => {
@@ -31,17 +31,17 @@ export const networkDeviceAPI = {
         return response.data;
     },
 
-    create: async (data: NetworkDeviceDTO) => {
+    create: async (data: NetworkDeviceReqDTO) => {
         const response = await api.post('/api/v1/network-devices', data);
         return response.data;
     },
 
-    createBatch: async (data: NetworkDeviceDTO[]) => {
+    createBatch: async (data: NetworkDeviceReqDTO[]) => {
         const response = await api.post('/api/v1/network-devices/batch', data);
         return response.data;
     },
 
-    update: async (id: number, data: NetworkDeviceDTO) => {
+    update: async (id: number, data: NetworkDeviceReqDTO) => {
         const response = await api.put(`/api/v1/network-devices/${id}`, data);
         return response.data;
     },
@@ -78,7 +78,7 @@ export const networkDeviceAPI = {
     },
 
     getAllByUsers: async () => {
-        const response = await api.get('/api/v1/network-devices/users');
+        const response = await api.get('/api/v1/network-devices/user');
         return response.data;
     },
 
@@ -135,7 +135,7 @@ export const networkDeviceAPI = {
         return response.data;
     },
 
-    updateByUsers: async (id: number, data: NetworkDeviceDTO) => {
+    updateByUsers: async (id: number, data: NetworkDeviceReqDTO) => {
         const response = await api.put(`/api/v1/baremetal/${id}/update`, data);
         return response.data;
     },

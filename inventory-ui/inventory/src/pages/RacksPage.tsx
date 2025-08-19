@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import Pagination from '@mui/material/Pagination';
-// import Stack from '@mui/material/Stack';
 import type { Rack } from '../types/responseDto';
 import { useUsers } from '../features/inventoryQuery/userQuery';
 import { useLocationsForUser } from '../features/inventoryQuery/locationQuery';
-import { useRacksForUser, useDeleteRack, useCreateRack, useUpdateRack } from '../features/inventoryQuery/rackQuery';
+import { useRacksForUser, useDeleteRack, useCreateRack, useUpdateRackByUser } from '../features/inventoryQuery/rackQuery';
 import { RackCard } from '../components/ui/rack/RackCard';
 import { RackTable } from '../components/ui/rack/RackTable';
 import { RackForm } from '../components/ui/rack/RackForm';
+import { LoadingSkeleton } from '../components/ui/LoadingSkeleton';
+import { AlertMessage } from '../components/ui/AlertMessage';
 import {
   Grid3X3,
   List,
@@ -21,35 +21,24 @@ import {
 import type { RackReqDTO } from '../types/requestDto';
 
 type ViewMode = 'cards' | 'table';
-interface Pageable {
-  page: number;
-  size: number;
-}
-
+type AlertType = 'success' | 'error' | 'warning' | 'info';
 
 const RacksPage: React.FC = () => {
 
-  const { data: locations } = useLocationsForUser();
-  const { data: users } = useUsers();
   const navigate = useNavigate();
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertType, setAlertType] = useState<AlertType | null>(null);
 
-  const [pageable, setPageable] = useState<Pageable>({ page: 0, size: 5 });
-  const { data: fetchedRack } = useRacksForUser();
-  const [racklist, setRacklist] = useState<Rack[]>(fetchedRack || []);
-  const { mutate: deleteRack } = useDeleteRack();
+
+  const { data: users } = useUsers();
+  const { data: locations } = useLocationsForUser();
+  const { data: rack } = useRacksForUser();
+
   const { mutate: createRack } = useCreateRack();
-  const { mutate: updateRack } = useUpdateRack();
+  const { mutate: updateRack } = useUpdateRackByUser();
+  const { mutate: deleteRack } = useDeleteRack();
 
-
-  const [rackForm, setRackForm] = useState<RackReqDTO>({
-    name: '',
-    totalSlot: 42,
-    locationId: 0,
-    usersId: [],
-  });
   const [selectedRack, setSelectedRack] = useState<Rack | null>(null);
-  const [rackId, setRackId] = useState<number>(0);
-
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [searchTerm, setSearchTerm] = useState('');
   const [locationFilter, setLocationFilter] = useState<string>('all');
@@ -58,39 +47,36 @@ const RacksPage: React.FC = () => {
 
 
   // Filter racks based on search and location
-  const filteredRacks = racklist?.filter(rack => {
-    const matchesSearch = rack.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLocation = locationFilter === 'all' || rack.location.name === locationFilter;
+  const filteredRacks = rack?.filter(r => {
+    const matchesSearch = r.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLocation =  r.location.name === locationFilter || locationFilter === 'all';
     return matchesSearch && matchesLocation;
   });
-  console.log("filteredRacks: ", filteredRacks)
 
-  // Handle page change
-  const handlePageChange = (newPage: number) => {
-    setPageable((prev) => ({ ...prev, page: newPage }));
-  };
 
-  // Handle size change
-  const handleSizeChange = (newSize: number) => {
-    setPageable((prev) => ({ ...prev, size: newSize }));
-  };
 
   const handleEdit = (rack: Rack) => {
-
-    const updatedRack: RackReqDTO = {
-      name: rack.name,
-      totalSlot: rack.totalSlot,
-      locationId: rack.location.id,
-      usersId: rack.user?.map(user => user.id)
-    };
-    setRackId(rack.id);
-    setRackForm(updatedRack);
+    setSelectedRack(rack);
     setIsFormOpen(true);
-    console.log("aval locations: ")
   };
 
   const handleDelete = (rackId: number) => {
-    setRackId(rackId);
+    deleteRack(rackId, {
+      onSuccess: () => {
+        //setRacks(racks.filter(r => r.id !== rackId));
+        setAlertType('success');
+        setAlertMessage('Rack deleted successfully');
+      },
+      onError: (error) => {
+        console.error(error.message);
+        setAlertType('error')
+        setAlertMessage(`Failed to delete rack.`);
+      },
+    })
+    setTimeout(() => {
+      setAlertType(null);
+      setAlertMessage(null);
+    }, 3000);
   };
 
   const handleAddRack = () => {
@@ -99,46 +85,43 @@ const RacksPage: React.FC = () => {
 
   const handleFormSubmit = (rack: RackReqDTO) => {
     if (selectedRack) {
-      updateRack({ id: rackId, data: rackForm }, {
-        onSuccess: () => {
-          setRacklist((prev) =>
-            prev.map((r) => r.id === rackId ? { ...r, ...rackForm } : r)
-          );
+      updateRack({ id: selectedRack.id, data: rack }, {
+        onSuccess: (response) => {
+          setAlertType('success');
+          setAlertMessage(`Rack ${response.name} updated successfully.`);
         },
         onError: (error) => {
-          console.error('Error updating rack:', error);
+          //console.error('Error updating rack:', error.message);
+          setAlertType('error');
+          setAlertMessage(`Failed to update rack. ${error.message}`);
         }
       });
 
-
     } else {
+      console.log('Creating rack: ', rack)
 
       createRack(rack, {
         onSuccess: (response) => {
-          setRacklist((prev) => [...prev, response])
+          //setRacks([...racks, response]);
+          setAlertType('success');
+          setAlertMessage(`Rack ${response.name} created successfully.`);
         },
         onError: (error) => {
-          console.error('Error creating rack:', error);
+          console.error('Error creating rack:', error.message);
+          setAlertType('error');
+          setAlertMessage(`Failed to create rack. ${error.message}`);
         }
       })
     }
     setSelectedRack(null);
-    setRackId(0);
     setIsFormOpen(false);
-  };
 
-  const handleConfirmDelete = () => {
-    if (rackId) {
-      deleteRack(rackId, {
-        onSuccess: () => {
-          console.log('Rack deleted successfully');
-        },
-        onError: (error) => {
-          console.error('Error updating rack:', error);
-        }
-      })
-    }
-  }
+    setTimeout(() => {
+      setAlertType(null);
+      setAlertMessage(null);
+    }, 3000);
+
+  };
 
   const handleFormClose = () => {
     setIsFormOpen(false);
@@ -146,32 +129,31 @@ const RacksPage: React.FC = () => {
   };
 
   const handleRackClick = (rackid: number) => {
-    console.log("RackId: ", rackid)
+    console.log("Handle click is working...")
     navigate(`/inventory/racks/${rackid}`);
   };
 
-  const handleCloseDetails = () => {
-    setSelectedRack(null);
-  };
 
   const locationOptions = [
     { value: 'all', label: 'All Locations' },
     ...(locations?.map(location => ({
-      value: location.id,
+      value: location.name,
       label: location.name
     })) || [])
   ];
 
-  useEffect(() => {
-    setRacklist(fetchedRack || [])
-  }, [racklist])
 
+  if (!filteredRacks) {
+    return (
+      <LoadingSkeleton />
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-xs ">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-fit bg-gray-50 text-xs">
+      <div className="max-w-7xl mx-auto ">
         {/* Header */}
-        <div className="mb-8">
+        <div className="mb-8 ">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
             <div className="mb-4 sm:mb-0">
               <div className="flex items-center mb-2">
@@ -193,7 +175,7 @@ const RacksPage: React.FC = () => {
         </div>
 
         {/* Controls */}
-        <div className=" mb-6 bg-white rounded-xl border border-gray-200 p-4">
+        <div className=" mb-6 bg-white rounded-md border border-gray-200 p-2">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
             {/* Search and Filter */}
             <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3 flex-1">
@@ -204,7 +186,7 @@ const RacksPage: React.FC = () => {
                   placeholder="Search racks..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div className="relative">
@@ -257,9 +239,11 @@ const RacksPage: React.FC = () => {
         {/* Results Summary */}
         <div className="mb-4">
           <p className="text-sm text-gray-600">
-            Showing {filteredRacks?.length} of {racklist?.length} server racks
+            Showing {filteredRacks?.length} of {rack?.length} server racks
           </p>
         </div>
+
+
 
         {/* Content */}
         {filteredRacks?.length === 0 ? (
@@ -306,35 +290,13 @@ const RacksPage: React.FC = () => {
           availableLocations={locations || []}
         />
 
-        {/* Rack Details Modal */}
-        {/* {selectedRack && (
-          <RackDetails
-            rack={selectedRack}
-            onClose={handleCloseDetails}
+
+        {alertMessage && (
+          <AlertMessage
+            message={alertMessage}
+            type={alertType}
           />
-        )} */}
-
-
-        {/* Confirm Delete Modal */}
-        {/* <ConfirmDeleteModal
-                    isOpen={isDeleteModalOpen}
-                    onClose={() => closeDeleteModal()}
-                    onConfirm={handleDelete}
-                    itemName={"Item"}
-                /> */}
-
-        {/* Alert Messages */}
-        {/* <AlertMsg
-                    message={{
-                        show: {},
-                        type: 'success',
-                        title: editingProject ? 'Rack Updated' : 'Rack Created',
-                        message: editingProject
-                            ? 'The project was updated successfully.'
-                            : 'The project was created successfully.'
-                    }}
-                    onClose={() => setEditingProject(null)}
-                /> */}
+        )}
       </div>
     </div>
   );

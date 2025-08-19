@@ -32,7 +32,7 @@ public class BareMetalController {
     @PostMapping
     public ResponseEntity<BareMetalServerResponseDTO> save(@RequestBody BareMetalServerRequestDTO dto) {
         try {
-            LOGGER.info("Received request to save bareMetal: {}", dto.getName());
+            LOGGER.info("Received request to save bareMetal: {}", dto.getSerialNumber());
             BareMetalServerResponseDTO savedBareMetal = bareMetalService.save(dto);
             return new ResponseEntity<>(savedBareMetal, HttpStatus.CREATED);
         } catch (Exception ex) {
@@ -163,22 +163,6 @@ public class BareMetalController {
     }
 
 
-    @PreAuthorize("hasPermission(null, 'BAREMETAL', 'READ')")
-    @GetMapping("/search/by-name/paged")
-    public ResponseEntity<Page<BareMetalServerResponseDTO>> searchByNamePaged(
-            @RequestParam String name,
-            @RequestParam(defaultValue = "0") Integer page,
-            @RequestParam(defaultValue = "5") Integer size ) {
-        LOGGER.info("Received request to search bareMetals with name: {}", name);
-        try {
-            Page<BareMetalServerResponseDTO> bareMetals = bareMetalService.searchByName(name, page, size);
-            return ResponseEntity.ok(bareMetals);
-        } catch (RuntimeException ex) {
-            LOGGER.error("Error searching bareMetals with name: {}", name, ex);
-            throw new RuntimeException("Error searching bareMetals: " + ex.getMessage());
-        }
-    }
-
 
     @Transactional
     @PreAuthorize("hasPermission(#baremetalId, 'BAREMETAL', 'EDIT')")
@@ -221,10 +205,10 @@ public class BareMetalController {
 
     @PreAuthorize("hasPermission(#id, 'BAREMETAL', 'READ')")
     @GetMapping("/ip/user")
-    public ResponseEntity<List<BareMetalServerResponseDTO>> getByIpAndUser(@RequestParam String ip, @RequestParam Long userId) {
+    public ResponseEntity<List<BareMetalServerResponseDTO>> getByIpAndUser(@RequestParam String ip) {
         try {
             LOGGER.info("Received request to fetch bareMetal with IP: {}", ip);
-            List<BareMetalServerResponseDTO> bareMetals = bareMetalService.getByIp(ip, userId);
+            List<BareMetalServerResponseDTO> bareMetals = bareMetalService.getByIpAndUser(ip);
             return ResponseEntity.ok(bareMetals);
         } catch (RuntimeException ex) {
             LOGGER.error("Error occur while fetching bareMetal with ID {}: ", ip, ex);
@@ -240,14 +224,6 @@ public class BareMetalController {
         return bareMetalService.getBySerialNumberAndUser(sNo);
     }
 
-
-    @PreAuthorize("hasPermission(null, 'BAREMETAL', 'READ')")
-    @GetMapping("/search/by-name")
-    public ResponseEntity<List<BareMetalServerResponseDTO>> searchByName(String name) {
-        LOGGER.info("Received request to get BareMetalServer by name: {}", name);
-        List<BareMetalServerResponseDTO> bareMetals = bareMetalService.getByServerNameAndUser(name);
-        return ResponseEntity.ok(bareMetals);
-    }
 
 
     @PreAuthorize("hasPermission(null, 'BAREMETAL', 'READ')")

@@ -15,7 +15,6 @@ public class VirtualizationsMapper {
 
     public static Virtualizations toEntity(VirtualizationsRequestDTO dto, BareMetalServers bareMetalServer, Set<User> users) {
         Virtualizations vp = new Virtualizations();
-        vp.setHostName(dto.getName());
         vp.setHostType(HostType.valueOf(dto.getHostType()));
         vp.setType(VirtualizationType.valueOf(dto.getType()));
         vp.setVersion(dto.getVersion());
@@ -35,7 +34,6 @@ public class VirtualizationsMapper {
     public static VirtualizationsResponseDTO toDTO(Virtualizations platform) {
         VirtualizationsResponseDTO vpDto = new VirtualizationsResponseDTO();
         vpDto.setId(platform.getId());
-        vpDto.setName(platform.getHostName());
         vpDto.setHostType(platform.getHostType());
         vpDto.setType(platform.getType());
         vpDto.setVersion(platform.getVersion());

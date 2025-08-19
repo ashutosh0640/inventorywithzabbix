@@ -4,12 +4,12 @@ import Dashboard from '../../pages/DashboardPage';
 import Projects from '../../pages/ProjectPage';
 import Locations from '../../pages/LocationPage';
 import Racks from '../../pages/RacksPage';
-import Baremetals from '../../pages/BaremetalPage';
 import Virtualizations from '../../pages/VirtualizationPage';
 import LayoutRoute from '../routes/LayoutRoutes';
 import PrivateRoute from './PrivateRoutes';
 import { LoginRoute } from '../routes/LoginRoutes';
 import { RackDetails } from '../ui/rack/RackDetails';
+import Devices from '../../pages/DevicePage';
 
 
 const Router = () => {
@@ -41,9 +41,9 @@ const Router = () => {
                 <Route path=":id" element={<RackDetails />} />
                 <Route path=":id/baremetals" element={<div>Baremetals in Rack</div>} />
               </Route>
-              <Route path="baremetals">
-                <Route index element={<Baremetals />} />
-                <Route path=":id" element={<div>Baremetal Details</div>} />
+              <Route path="devices">
+                <Route index element={<Devices />} />
+                <Route path=":id" element={<div>Device Details</div>} />
                 <Route path=":id/virtualizations" element={<div>Virtualizations on Baremetal</div>} />
               </Route>
               <Route path="virtualization">
@@ -54,10 +54,6 @@ const Router = () => {
               <Route path="virtualmachines">
                 <Route index element={<div>All Virtual Machines</div>} />
                 <Route path=":id" element={<div>VM Details</div>} />
-              </Route>
-              <Route path="networks">
-                <Route index element={<div>All Network Devices</div>} />
-                <Route path=":id" element={<div>network details Details</div>} />
               </Route>
             </Route>
 

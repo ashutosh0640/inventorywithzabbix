@@ -20,15 +20,13 @@ public interface NetworkDeviceRepository extends JpaRepository<NetworkDevices, L
     @Query("SELECT n FROM NetworkDevices n " +
             "JOIN n.users u " +
             "JOIN n.interfaces i WHERE" +
-            ":name IS NULL OR LOWER(n.hostName) LIKE LOWER(CONCAT('%', :name, '%')) AND" +
             ":ip IS NULL OR (i.ip LIKE CONCAT('%', :ip, '%') AND "+
             "u.id = :userId)")
-    List<NetworkDevices> getByNameOrIpAndUser(@Param("name") String name,
-                                              @Param("ip") String ip,
+    List<NetworkDevices> getByIpAndUser(@Param("ip") String ip,
                                               @Param("userId") Long userId);
 
     @Query("SELECT n FROM NetworkDevices n JOIN n.users u WHERE u.id = :userId")
-    List<NetworkDevices> getAllByUser(@Param("useId") Long userId);
+    List<NetworkDevices> getAllByUser(@Param("userId") Long userId);
 
 
     @Query("SELECT n FROM NetworkDevices n JOIN n.users u WHERE u.id = :userId")

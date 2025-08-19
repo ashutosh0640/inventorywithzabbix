@@ -2,21 +2,19 @@ package com.ashutosh0640.inventy.service;
 
 import com.ashutosh0640.inventy.dto.BareMetalServerRequestDTO;
 import com.ashutosh0640.inventy.dto.BareMetalServerResponseDTO;
-import com.ashutosh0640.inventy.entity.BareMetalServers;
-import com.ashutosh0640.inventy.entity.Interfaces;
-import com.ashutosh0640.inventy.entity.Racks;
-import com.ashutosh0640.inventy.entity.User;
+import com.ashutosh0640.inventy.entity.*;
 import com.ashutosh0640.inventy.enums.ActivityType;
 import com.ashutosh0640.inventy.enums.ManagementType;
 import com.ashutosh0640.inventy.exception.ResourceNotFoundException;
 import com.ashutosh0640.inventy.mapper.BareMetalMapper;
 import com.ashutosh0640.inventy.mapper.InterfaceMapper;
 import com.ashutosh0640.inventy.repository.BareMetalRepository;
-import com.ashutosh0640.inventy.repository.InterfaceRepository;
 import com.ashutosh0640.inventy.repository.RackRepository;
 import com.ashutosh0640.inventy.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 
@@ -31,8 +29,8 @@ public class BareMetalService {
     private final RackRepository rackRepository;
     private final UserRepository userRepository;
     private final ActivityLogService activityLogService;
-    private final InterfaceRepository interfaceRepository;
     private final RackSlotsService rackSlotService;
+    private final InterfaceService interfaceService;
     private static final Logger LOGGER = LoggerFactory.getLogger(BareMetalService.class);
 
     public BareMetalService(BareMetalRepository bareMetalRepository,
@@ -40,54 +38,58 @@ public class BareMetalService {
                             UserRepository userRepository,
                             ActivityLogService activityLogService,
                             RackSlotsService rackSlotService,
-                            InterfaceRepository interfaceRepository) {
+                            InterfaceService interfaceService) {
         this.bareMetalRepository = bareMetalRepository;
         this.rackRepository = rackRepository;
         this.userRepository = userRepository;
         this.activityLogService = activityLogService;
         this.rackSlotService = rackSlotService;
-        this.interfaceRepository = interfaceRepository;
+        this.interfaceService = interfaceService;
     }
 
+    @CacheEvict(key = "baremetal", allEntries = true)
     public BareMetalServerResponseDTO save(BareMetalServerRequestDTO dto) {
         Boolean isSlot = rackSlotService.isRackSlotEmpty(dto.getRackId(), dto.getRackSlotNumber());
-        if (!isSlot) {
-            throw new RuntimeException("Slot number: "+dto.getRackSlotNumber()+" is not empty of rack id: "+ dto.getRackId());
+        if (dto.getRackSlotNumber()==null || !isSlot) {
+            throw new RuntimeException("Correct slot number required. Slot Number: "+dto.getRackSlotNumber());
         }
         try {
-            LOGGER.info("Fetching bare metal server rack with ID: {}", dto.getRackId());
+            LOGGER.info("Fetching rack with ID: {}", dto.getRackId());
             Racks rack = rackRepository.getReferenceById(dto.getRackId());
 
-            List<User> userEntities = userRepository.findAllById(dto.getUserIds());
+            Set<User> userEntities;
+            if (dto.getUserIds()==null || dto.getUserIds().isEmpty()) {
+                userEntities = new HashSet<>(rack.getUsers());
+            } else {
+                userEntities = new HashSet<>(userRepository.findAllById(dto.getUserIds()));
+            }
 
-            BareMetalServers bareMetal = bareMetalRepository.save(BareMetalMapper.toEntity(dto, rack, new HashSet<>(userEntities)));
-            LOGGER.info("Saving bareMetal: {}", bareMetal);
 
-            Set<Interfaces> in = dto.getInterfaces().stream().map(i -> {
+            BareMetalServers server = BareMetalMapper.toEntity(dto, rack, userEntities);
 
-                Interfaces interf = InterfaceMapper.toEntity(i, bareMetal);
-                return interfaceRepository.save(interf);
-            }).collect(Collectors.toSet());
+            BareMetalServers bareMetal = bareMetalRepository.save(server);
+            rackSlotService.assignHostToSlot(server.getId(), rack.getId(), server.getRackSlotNumber());
+            LOGGER.info("Saving bare metal: {}", bareMetal);
 
-            rackSlotService.assignHostToSlot(bareMetal.getId(), rack.getId(), bareMetal.getRackSlotNumber());
+            Set<Interfaces> in = dto.getInterfaces().stream().map(i-> InterfaceMapper.toEntity(i, server)).collect(Collectors.toSet());
+
+            List<Interfaces> interfaces = interfaceService.createAllEntity(in);
 
             activityLogService.createEntity(
                     ActivityType.WRITE,
-                    "Physical server is created. ID: "+bareMetal.getId()
+                    "Physical server is created. ID: "+server.getId()
             );
-            return BareMetalMapper.toDTO(bareMetal, in, bareMetal.getVirtualizations(), bareMetal.getUsers());
+            return BareMetalMapper.toDTO(bareMetal, new HashSet<>(interfaces), bareMetal.getVirtualizations(), bareMetal.getUsers());
         } catch (Exception ex) {
-            LOGGER.error("Error while saving bare metal  {}: ", dto.getName(), ex);
-            throw new RuntimeException("Error while saving bare metal: "+dto.getName()+". Reason: " + ex.getMessage());
+            LOGGER.error("Error while saving bare metal  {}: ", dto, ex);
+            throw new RuntimeException("Error while saving bare metal: "+dto.getSerialNumber()+". Reason: " + ex.getMessage());
         }
     }
 
-
+    @CacheEvict(key = "baremetal", allEntries = true)
     public void saveAll(Set<BareMetalServerRequestDTO> dtos) {
         try {
             LOGGER.info("Fetching bare metal server's rack");
-
-            Interfaces interf = new Interfaces();
 
             List<BareMetalServers> servers = dtos.stream().map(b -> {
 
@@ -101,9 +103,7 @@ public class BareMetalService {
             List<BareMetalServers> bareMetals = bareMetalRepository.saveAll(servers);
             LOGGER.info("Saved bareMetal successfully.");
 
-            bareMetals.forEach(b -> {
-                rackSlotService.assignHostToSlot(b.getId(), b.getRack().getId(), b.getRackSlotNumber());
-            });
+            bareMetals.forEach(b -> rackSlotService.assignHostToSlot(b.getId(), b.getRack().getId(), b.getRackSlotNumber()));
 
             activityLogService.createEntity(
                     ActivityType.WRITE,
@@ -133,7 +133,7 @@ public class BareMetalService {
 
     public List<BareMetalServerResponseDTO> getByIp(String ip) {
         try {
-            LOGGER.info("Fetching bareMetal with IP: {}", ip);
+            LOGGER.info("Fetching bare metal with IP: {}", ip);
 
             List<BareMetalServers> bareMetals = bareMetalRepository.findByIp(ip);
 
@@ -142,24 +142,7 @@ public class BareMetalService {
                     .toList();
 
         } catch (Exception ex) {
-            LOGGER.error("Error fetching bareMetal with IP {}: ", ip, ex);
-            throw new RuntimeException("Failed to retrieve bareMetal. Reason: " + ex.getMessage());
-        }
-    }
-
-
-    public List<BareMetalServerResponseDTO> getByIp(String ip, Long userId) {
-        try {
-            LOGGER.info("Fetching bareMetal with IP: {}", ip);
-
-            List<BareMetalServers> bareMetals = bareMetalRepository.findByIpAndUser(ip, userId);
-
-            return bareMetals.stream()
-                    .map(b-> BareMetalMapper.toDTO(b, b.getInterfaces(), b.getVirtualizations(), b.getUsers()))
-                    .toList();
-
-        } catch (Exception ex) {
-            LOGGER.error("Error fetching bareMetal with IP {}: ", ip, ex);
+            LOGGER.error("Error fetching bare metal with IP {}: ", ip, ex);
             throw new RuntimeException("Failed to retrieve bareMetal. Reason: " + ex.getMessage());
         }
     }
@@ -167,7 +150,7 @@ public class BareMetalService {
 
     public List<BareMetalServerResponseDTO> getAll() {
         try {
-            LOGGER.info("Fetching all bareMetals...");
+            LOGGER.info("Fetching all bare metals...");
             List<BareMetalServers> bareMetals = bareMetalRepository.findAll();
 
             return bareMetals.stream()
@@ -236,7 +219,6 @@ public class BareMetalService {
                     .orElseThrow(() -> new ResourceNotFoundException("BareMetal not found with ID: " + id));
 
             // Update fields
-            existingBareMetal.setHostName(dto.getName());
             existingBareMetal.setManufacturer(dto.getManufacturer());
             existingBareMetal.setModelName(dto.getModelName());
             existingBareMetal.setSerialNumber(dto.getSerialNumber());
@@ -247,7 +229,6 @@ public class BareMetalService {
                     .map(InterfaceMapper::toEntity).collect(Collectors.toSet());
 
             existingBareMetal.setInterfaces(interf);
-
 
             // Save updated bareMetal
             BareMetalServers updatedBareMetal = bareMetalRepository.save(existingBareMetal);
@@ -263,6 +244,7 @@ public class BareMetalService {
         }
     }
 
+    @CacheEvict(key = "baremetal", allEntries = true)
     public void delete(Long id) {
         try {
             LOGGER.info("Deleting bareMetal with ID: {}", id);
@@ -285,9 +267,6 @@ public class BareMetalService {
         }
     }
 
-
-
-
     public BareMetalServerResponseDTO updateRackToBaremetal(Long baremetalId, Long rackId, Short slot) {
         LOGGER.info("Updating location to rack with ID: {}", rackId);
         try {
@@ -303,7 +282,7 @@ public class BareMetalService {
             rackSlotService.assignHostToSlot(baremetalId, rackId, slot);
             activityLogService.createEntity(
                     ActivityType.WRITE,
-                    "Physical server "+ baremetal.getHostName() +"  shifted from rack "+baremetal.getRack().getName()+" to ->  "+rack.getName()+"."
+                    "Physical server with serial number"+ baremetal.getSerialNumber() +"  shifted from rack "+baremetal.getRack().getName()+" to ->  "+rack.getName()+"."
             );
             return BareMetalMapper.toDTO(bareMetalRepository.save(baremetal));
         } catch (Exception ex) {
@@ -357,7 +336,7 @@ public class BareMetalService {
             List<BareMetalServers> bareMetals = bareMetalRepository.findAllByUser(userId);
 
             return bareMetals.stream()
-                    .map(BareMetalMapper::toDTO)
+                    .map(b-> BareMetalMapper.toDTO(b, b.getInterfaces(), b.getVirtualizations(), b.getUsers()))
                     .collect(Collectors.toList());
 
         } catch (Exception ex) {
@@ -423,28 +402,6 @@ public class BareMetalService {
         }
     }
 
-    public List<BareMetalServerResponseDTO> getByServerNameAndUser(String name) {
-        try {
-            LOGGER.info("Searching bareMetals with name: {}", name);
-            final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
-            List<BareMetalServers> bareMetals = bareMetalRepository.findByServerNameAndUserContainingIgnoreCase(name, userId);
-
-            if (bareMetals.isEmpty()) {
-                LOGGER.warn("No bareMetals found matching: {}", name);
-                throw new ResourceNotFoundException("No bareMetals found with name: " + name);
-            }
-
-            return bareMetals.stream()
-                    .map(b->
-                         BareMetalMapper.toDTO(b, b.getInterfaces(), b.getVirtualizations(), b.getUsers())
-                    )
-                    .collect(Collectors.toList());
-
-        } catch (Exception ex) {
-            LOGGER.error("Error searching bareMetals by name {}: ", name, ex);
-            throw new RuntimeException("Failed to search bareMetals. Reason: " + ex.getMessage());
-        }
-    }
 
 
 
@@ -469,6 +426,23 @@ public class BareMetalService {
         }
     }
 
+    public List<BareMetalServerResponseDTO> getByIpAndUser(String ip) {
+        try {
+            LOGGER.info("Fetching bare metal with IP and User: {}", ip);
+            final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
+
+            List<BareMetalServers> bareMetals = bareMetalRepository.findByIpAndUser(ip, userId);
+
+            return bareMetals.stream()
+                    .map(b-> BareMetalMapper.toDTO(b, b.getInterfaces(), b.getVirtualizations(), b.getUsers()))
+                    .toList();
+
+        } catch (Exception ex) {
+            LOGGER.error("Error fetching bare metal with IP {}: ", ip, ex);
+            throw new RuntimeException("Failed to retrieve bareMetal. Reason: " + ex.getMessage());
+        }
+    }
+
 
 
     public List<BareMetalServerResponseDTO> getByRackByUser(Long rackId) {
@@ -483,9 +457,7 @@ public class BareMetalService {
             }
 
             return list.stream()
-                    .map(b->{
-                        return BareMetalMapper.toDTO(b, b.getInterfaces(), b.getVirtualizations(), b.getUsers());
-                    })
+                    .map(b-> BareMetalMapper.toDTO(b, b.getInterfaces(), b.getVirtualizations(), b.getUsers()))
                     .toList();
 
 
@@ -534,7 +506,6 @@ public class BareMetalService {
             BareMetalServers bareMetal = bareMetalRepository.findByUser(userId, baremetalId)
                     .orElseThrow(() -> new ResourceNotFoundException("BareMetalServer not found or not authorized for update"));
 
-            bareMetal.setHostName(dto.getName());
             bareMetal.setManufacturer(dto.getManufacturer());
             bareMetal.setModelName(dto.getModelName());
             bareMetal.setSerialNumber(dto.getSerialNumber());
@@ -569,27 +540,6 @@ public class BareMetalService {
         }
     }
 
-    public Page<BareMetalServerResponseDTO> searchByName(String name, int pageSize, int pageNumber) {
-
-        try {
-            final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
-            LOGGER.info("Searching bareMetals by name '{}' for userId: {}", name, userId);
-
-            // Default to page size 10 if not provided
-            int effectivePageSize = (pageSize <= 0) ? 10 : pageSize;
-            int effectivePageNumber = Math.max(pageNumber, 0);
-
-            Pageable pageable = PageRequest.of(effectivePageNumber, effectivePageSize);
-
-            Page<BareMetalServers> bareMetalsPage = bareMetalRepository.searchByNameAndUser(name, userId, pageable);
-
-            return bareMetalsPage.map(BareMetalMapper::toDTO);
-
-        } catch (Exception ex) {
-            LOGGER.error("Error fetching paginated bareMetals for user with user ", ex);
-            throw new RuntimeException("Failed to retrieve bareMetals. Reason: " + ex.getMessage());
-        }
-    }
 
     public long countByUser() {
         final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();

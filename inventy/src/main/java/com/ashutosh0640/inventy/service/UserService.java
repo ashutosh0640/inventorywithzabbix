@@ -218,8 +218,8 @@ public class UserService {
             // Update fields
             existingUser.setFullName(dto.getFullName());
             existingUser.setPhoneNumber(dto.getPhoneNumber());
-            existingUser.setIsActive(dto.getIsActive());
-            existingUser.setIsBlocked(dto.getIsBlocked());
+            existingUser.setActive(dto.getActive());
+            existingUser.setBlocked(dto.getBlocked());
 
             if (dto.getProfilePicture() !=  null) {
                 String url = ProfilePictureService.getprofileUrl(dto.getProfilePicture());
