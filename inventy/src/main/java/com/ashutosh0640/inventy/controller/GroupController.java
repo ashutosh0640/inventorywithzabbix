@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/groups")
-@CrossOrigin(origins = "*")
 public class GroupController {
 
     @Autowired
@@ -21,16 +20,14 @@ public class GroupController {
     public ResponseEntity<Group> createGroup(@RequestBody Map<String, Object> payload) {
         String name = payload.get("name").toString();
         String description = payload.get("description").toString();
-        Long createdById = Long.valueOf(payload.get("createdById").toString());
-        List<Long> memberIds = (List<Long>) payload.get("memberIds");
 
-        Group group = groupService.createGroup(name, description, createdById, memberIds);
+        Group group = groupService.createGroup(name, description);
         return ResponseEntity.ok(group);
     }
 
-    @PostMapping("/{groupId}/members/{userId}")
-    public ResponseEntity<Group> addMember(@PathVariable Long groupId, @PathVariable Long userId) {
-        Group group = groupService.addMemberToGroup(groupId, userId);
+    @PostMapping("/{groupId}")
+    public ResponseEntity<Group> addMember(@PathVariable Long groupId, @RequestBody List<Long> usersId) {
+        Group group = groupService.addMembersToGroup(groupId, usersId);
         return ResponseEntity.ok(group);
     }
 

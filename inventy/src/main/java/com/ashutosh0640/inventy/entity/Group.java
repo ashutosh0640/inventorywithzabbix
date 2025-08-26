@@ -1,8 +1,10 @@
 package com.ashutosh0640.inventy.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
 @Entity
@@ -21,23 +23,20 @@ public class Group {
     @JoinColumn(name = "created_by")
     private User createdBy;
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
     private boolean active = true;
 
-    @ManyToMany
-    @JoinTable(
-            name = "group_members",
-            joinColumns = @JoinColumn(name = "group_id"),
-            inverseJoinColumns = @JoinColumn(name = "user_id")
-    )
-    private Set<User> members;
+    @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<GroupMembers> members = new HashSet<>();
 
     public Group() {}
 
-    public Group(String name, String description, User createdBy) {
+    public Group(String name, String description) {
         this.name = name;
         this.description = description;
-        this.createdBy = createdBy;
     }
 
     public Long getId() {
@@ -88,11 +87,11 @@ public class Group {
         this.active = active;
     }
 
-    public Set<User> getMembers() {
+    public Set<GroupMembers> getMembers() {
         return members;
     }
 
-    public void setMembers(Set<User> members) {
+    public void setMembers(Set<GroupMembers> members) {
         this.members = members;
     }
 }

@@ -2,6 +2,7 @@ package com.ashutosh0640.inventy.dto;
 
 import com.ashutosh0640.inventy.enums.NotificationType;
 import com.ashutosh0640.inventy.enums.Priority;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
@@ -13,7 +14,11 @@ public class NotificationDTO {
     private NotificationType type;
     private Priority priority;
     private boolean read;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime createdAt;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime readAt;
 
     public NotificationDTO() {    }

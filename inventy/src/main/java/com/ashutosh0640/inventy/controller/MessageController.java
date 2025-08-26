@@ -9,13 +9,13 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/messages")
-@CrossOrigin(origins = "*")
 public class MessageController {
 
     @Autowired
@@ -76,4 +76,17 @@ public class MessageController {
             messageService.sendDirectMessage(message.getSenderId(), message.getReceiverId(), message.getContent());
         }
     }
+
+    @GetMapping("/old")
+    public ResponseEntity<List<MessageDTO>> getOlderMessages(@RequestParam LocalDateTime timestamp, @RequestParam int pageNumber, @RequestParam int pageSize) {
+        List<MessageDTO> res = messageService.getOlderMessages(timestamp, pageNumber, pageSize);
+        return ResponseEntity.ok(res);
+    }
+
+    @GetMapping("/new")
+    public ResponseEntity<List<MessageDTO>> getNewerMessages(@RequestParam LocalDateTime timestamp, @RequestParam int pageNumber, @RequestParam int pageSize) {
+        List<MessageDTO> res = messageService.getNewerMessages(timestamp, pageNumber, pageSize);
+        return ResponseEntity.ok(res);
+    }
+
 }

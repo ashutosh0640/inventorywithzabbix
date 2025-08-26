@@ -1,6 +1,7 @@
 package com.ashutosh0640.inventy.dto;
 
 import com.ashutosh0640.inventy.enums.MessageType;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 
@@ -14,6 +15,8 @@ public class MessageDTO {
     private String groupName;
     private String content;
     private MessageType messageType;
+
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS")
     private LocalDateTime timestamp;
     private boolean delivered;
     private boolean read;

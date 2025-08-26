@@ -1,6 +1,7 @@
 package com.ashutosh0640.inventy.service;
 
 import com.ashutosh0640.inventy.entity.Group;
+import com.ashutosh0640.inventy.entity.GroupMembers;
 import com.ashutosh0640.inventy.entity.User;
 import com.ashutosh0640.inventy.enums.NotificationType;
 import com.ashutosh0640.inventy.repository.GroupRepository;
@@ -25,59 +26,64 @@ public class GroupService {
     @Autowired
     private NotificationService notificationService;
 
-    public Group createGroup(String name, String description, Long createdById, List<Long> memberIds) {
-        Optional<User> creator = userRepository.findById(createdById);
+    public Group createGroup(String name, String description) {
+        final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
+        User creator = userRepository.getReferenceById(userId);
 
-        if (creator.isPresent()) {
-            Group group = new Group(name, description, creator.get());
+        Group group = new Group();
+        group.setName(name);
+        group.setDescription(description);
+        group.setCreatedBy(creator);
 
-            Set<User> members = new HashSet<>();
-            members.add(creator.get()); // Add creator as member
+        Set<GroupMembers> members = new HashSet<>();
+        GroupMembers gm = new GroupMembers();
+        gm.setUser(creator);
+        gm.setAdmin(true);
+        gm.setGroup(group);
+        members.add(gm); // Add creator as member
 
-            // Add other members
-            for (Long memberId : memberIds) {
-                userRepository.findById(memberId).ifPresent(members::add);
-            }
+        group.setMembers(members);
 
-            group.setMembers(members);
-            group = groupRepository.save(group);
+        group = groupRepository.save(group);
 
-            // Notify all members about group creation
-            members.forEach(member -> {
-                if (!member.getId().equals(createdById)) {
-                    notificationService.createNotification(
-                            member,
-                            "Added to Group",
-                            "You've been added to group: " + name,
-                            NotificationType.USER_ACTION
-                    );
-                }
-            });
-
-            return group;
-        }
-        throw new RuntimeException("Creator not found");
+        // Notify all members about group creation
+//        members.forEach(member -> {
+//            if (!member.getId().equals(createdById)) {
+//                notificationService.createNotification(
+//                        member,
+//                        "Added to Group",
+//                        "You've been added to group: " + name,
+//                        NotificationType.USER_ACTION
+//                    );
+//                }
+//            });
+        return group;
     }
 
-    public Group addMemberToGroup(Long groupId, Long userId) {
-        Optional<Group> group = groupRepository.findById(groupId);
-        Optional<User> user = userRepository.findById(userId);
+    public Group addMembersToGroup(Long groupId, List<Long> usersId) {
+        Group group = groupRepository.getReferenceById(groupId);
 
-        if (group.isPresent() && user.isPresent()) {
-            group.get().getMembers().add(user.get());
-            Group savedGroup = groupRepository.save(group.get());
+        List<User> users = usersId.stream()
+                .map(id->userRepository.getReferenceById(id))
+                .toList();
 
-            // Notify user about being added to group
+        GroupMembers gm = new GroupMembers();
+        users.forEach(u->{
+            gm.setUser(u);
+            group.getMembers().add(gm);
+        });
+        Group savedGroup =  groupRepository.save(group);
+
+        // Notify user about being added to group
+        users.forEach(user -> {
             notificationService.createNotification(
-                    user.get(),
-                    "Added to Group",
-                    "You've been added to group: " + group.get().getName(),
+                    user,
+                    "Added to a group",
+                    "You,ve been added to group: "+savedGroup.getName(),
                     NotificationType.USER_ACTION
             );
-
-            return savedGroup;
-        }
-        throw new RuntimeException("Group or user not found");
+        });
+        return savedGroup;
     }
 
     public List<Group> getUserGroups(Long userId) {

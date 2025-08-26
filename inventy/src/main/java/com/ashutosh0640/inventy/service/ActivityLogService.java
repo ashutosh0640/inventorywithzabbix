@@ -44,21 +44,23 @@ public class ActivityLogService {
     public Page<ActivityLog> getEntityByPage(Integer page, Integer size) {
 
         // Default values
-        int defaultSize = 10;
         int defaultPage = 0;
-
-        // Validate `size`: must be non-null, > 0
-        if (size == null || size <= 0 ) {
-            size = defaultSize;
-        }
+        int defaultSize = 10;
 
         // Validate `page`: must be non-null and ≥ 0
         if (page == null || page < 0) {
             page = defaultPage;
         }
 
+        // Validate `size`: must be non-null, > 0
+        if (size == null || size <= 0 ) {
+            size = defaultSize;
+        }
+
+
+
         Pageable pageable = PageRequest.of(page, size);
-        return repo.findAll( pageable);
+        return repo.findRecentActivities( pageable);
     }
 
     public Page<ActivityLog> getRecentEntityByPage(Integer page, Integer size) {

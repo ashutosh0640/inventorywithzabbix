@@ -4,6 +4,8 @@ import com.ashutosh0640.inventy.dto.MessageDTO;
 import com.ashutosh0640.inventy.dto.NotificationDTO;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ public class RedisService {
     @Autowired
     private ObjectMapper objectMapper;
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(BareMetalService.class);
+
     private static final String MESSAGE_PREFIX = "message:";
     private static final String CONVERSATION_PREFIX = "conversation:";
     private static final String GROUP_MESSAGE_PREFIX = "group_messages:";
@@ -32,6 +36,7 @@ public class RedisService {
     // Message caching
     public void cacheMessage(MessageDTO message) {
         String key = MESSAGE_PREFIX + message.getId();
+        LOGGER.warn("redis key created successfully: key: {}", key );
         redisTemplate.opsForValue().set(key, message, 24, TimeUnit.HOURS);
     }
 
