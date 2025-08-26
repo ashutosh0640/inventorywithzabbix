@@ -1,4 +1,4 @@
 package com.ashutosh0640.inventy.service;
 
-public class MessageService {
+public class GroupMembersService {
 }

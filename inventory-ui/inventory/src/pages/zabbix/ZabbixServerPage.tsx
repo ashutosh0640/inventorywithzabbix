@@ -7,7 +7,7 @@ import { ZabbixServerForm } from '../../components/zabbix/server/ZabbixServerFor
 //import { ConfirmDialog } from '../components/ConfirmDialog';
 import { AlertMessage } from '../../components/ui/AlertMessage';
 import { SearchBar } from '../../components/ui/SearchBar';
-import { Server, Database } from 'lucide-react';
+import { Database } from 'lucide-react';
 import type { ZabbixServerResDTO, ZabbixServerReqDTO } from '../../types/zabbix';
 
 type AlertType = 'success' | 'error' | 'warning' | 'info';
@@ -29,18 +29,18 @@ const ZabbixServerPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingServer, setEditingServer] = useState<ZabbixServerResDTO | null>(null);
-    const [confirmDialog, setConfirmDialog] = useState<{
-        isOpen: boolean;
-        title: string;
-        message: string;
-        onConfirm: () => void;
-        type?: 'danger' | 'warning' | 'info';
-    }>({
-        isOpen: false,
-        title: '',
-        message: '',
-        onConfirm: () => { },
-    });
+    // const [confirmDialog, setConfirmDialog] = useState<{
+    //     isOpen: boolean;
+    //     title: string;
+    //     message: string;
+    //     onConfirm: () => void;
+    //     type?: 'danger' | 'warning' | 'info';
+    // }>({
+    //     isOpen: false,
+    //     title: '',
+    //     message: '',
+    //     onConfirm: () => { },
+    // });
 
     const filteredServers = zabbixServers.filter(z =>
         z.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -56,18 +56,19 @@ const ZabbixServerPage: React.FC = () => {
 
         return {
             total: zabbixServers.length,
-            connected: counts.connected || 0,
-            disconnected: counts.disconnected || 0,
+            connected: counts.CONNECTED || 0,
+            offline: counts.OFFLINE || 0,
             error: counts.error || 0,
             pending: counts.pending || 0,
         };
     };
 
     const handleSelectServer = async (data: ZabbixServerResDTO) => {
+        console.log("Selecting Zabbix server: ", data);
         dispatch({ type: 'zabbix/selectServer', payload: data });
         setAlertType('success');
         setAlertMessage(`Selected Zabbix server: ${data.name}`);
-        const selectedServer = useAppSelector(state => state.zabbixServer.selectedServer);
+        //const selectedServer = useAppSelector(state => state.zabbixServer.selectedServer);
         console.log("Selected Zabbix server: ", selectedServer);
     };
 
@@ -117,15 +118,12 @@ const ZabbixServerPage: React.FC = () => {
     console.log("zabbix server list: ",zabbixServers);
 
     return (
-        <div className="min-h-screen theme-bg transition-all duration-300">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="min-h-screen transition-all duration-300">
+            <div className="w-full">
                 {/* Header */}
                 <div className="mb-8">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3">
-                            <div className="p-2 theme-bg-gradient rounded-lg">
-                                <Database className="w-8 h-8 text-white" />
-                            </div>
                             <div>
                                 <h1 className="text-3xl font-bold theme-text-primary">Zabbix Servers</h1>
                                 <p className="theme-text-secondary">Manage and monitor your Zabbix server connections</p>
@@ -177,7 +175,7 @@ const ZabbixServerPage: React.FC = () => {
                                     <p className="theme-text-secondary">
                                         <strong>{selectedServer?.name}</strong> - {selectedServer?.url}
                                         <span className="ml-2 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                                            Available in Redux Store
+                                            {selectedServer?.id ? selectedServer.name.charAt(0).toUpperCase() + selectedServer.name.slice(1) : 'N/A'}
                                         </span>
                                     </p>
                                 </div>
@@ -200,18 +198,15 @@ const ZabbixServerPage: React.FC = () => {
 
                 {/* Stats Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8">
-                    <div className="theme-card rounded-xl p-6">
-                        <div className="flex items-center justify-between">
+                    <div className=" bg-white rounded-xl p-6">
+                        <div>
                             <div>
                                 <p className="text-sm font-medium theme-text-secondary">Total Servers</p>
                                 <p className="text-2xl font-bold theme-text-primary">{statusCounts.total}</p>
                             </div>
-                            <div className="p-3 theme-bg-tertiary rounded-lg">
-                                <Server className="w-6 h-6 theme-text-accent" />
-                            </div>
                         </div>
                     </div>
-                    <div className="theme-card rounded-xl p-6">
+                    <div className="bg-white rounded-xl p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium theme-text-secondary">Connected</p>
@@ -222,36 +217,37 @@ const ZabbixServerPage: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="theme-card rounded-xl p-6">
+                    <div className="bg-white rounded-xl p-6">
                         <div className="flex items-center justify-between">
                             <div>
-                                <p className="text-sm font-medium theme-text-secondary">Disconnected</p>
-                                <p className="text-2xl font-bold text-gray-600">{statusCounts.disconnected}</p>
-                            </div>
-                            <div className="p-3 bg-gray-50 rounded-lg">
-                                <div className="w-6 h-6 bg-gray-500 rounded-full"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="theme-card rounded-xl p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium theme-text-secondary">Error</p>
-                                <p className="text-2xl font-bold text-red-600">{statusCounts.error}</p>
+                                <p className="text-sm font-medium theme-text-secondary">Offline</p>
+                                <p className="text-2xl font-bold text-red-600">{statusCounts.offline}</p>
                             </div>
                             <div className="p-3 bg-red-50 rounded-lg">
                                 <div className="w-6 h-6 bg-red-500 rounded-full"></div>
                             </div>
                         </div>
                     </div>
-                    <div className="theme-card rounded-xl p-6">
+                    <div className="bg-white rounded-xl p-6">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <p className="text-sm font-medium theme-text-secondary">Error</p>
+                                <p className="text-2xl font-bold text-gray-600">{statusCounts.error}</p>
+                            </div>
+                            <div className="p-3 bg-gray-50 rounded-lg">
+                                <div className="w-6 h-6 bg-gray-500 rounded-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-xl p-6">
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-sm font-medium theme-text-secondary">Pending</p>
                                 <p className="text-2xl font-bold text-yellow-600">{statusCounts.pending}</p>
                             </div>
                             <div className="p-3 bg-yellow-50 rounded-lg">
-                                <div className="w-6 h-6 bg-yellow-500 rounded-full animate-pulse"></div>
+                                <div className="w-6 h-6 bg-yellow-500 rounded-full"></div>
                             </div>
                         </div>
                     </div>
@@ -282,7 +278,7 @@ const ZabbixServerPage: React.FC = () => {
                         <p className="theme-text-secondary">Try adjusting your search criteria or create a new server.</p>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 border-2 border-red-600" >
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6" >
                         {filteredServers.map((server) => (
                             <ZabbixServerCard
                                 key={server.id}

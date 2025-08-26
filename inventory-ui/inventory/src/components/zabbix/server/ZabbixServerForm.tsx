@@ -78,7 +78,7 @@ export const ZabbixServerForm: React.FC<ZabbixServerFormProps> = ({
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
-                            Server Name
+                            Zabbix Server Name
                         </label>
                         <input
                             type="text"

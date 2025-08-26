@@ -6,7 +6,7 @@ import {
 import { locationsAPI } from '../../service/inventoryApi/locationApi';
 import type { Location } from '../../types/responseDto'
 import type { LocationReqDTO } from '../../types/requestDto';
-import { useAppSelector } from '../../slice/hooks';
+import { useAppSelector } from '../../slice/store';
 // import type { Location } from '../../types/responseDto';
 
 

@@ -29,6 +29,7 @@ const authSlice = createSlice({
     initialState,
     reducers: {
         setLoginDetails: (state, action: PayloadAction<Login>) => {
+            console.log('Setting login details:', action.payload);
             state.loginDetails = action.payload;
             state.isAuthenticated = true;
             sessionStorage.setItem(SESSION_KEY, JSON.stringify(action.payload));

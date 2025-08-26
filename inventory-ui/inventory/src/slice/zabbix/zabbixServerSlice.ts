@@ -17,9 +17,9 @@ const zabbixSlice = createSlice({
   initialState,
   reducers: {
     addServer: (state, action: PayloadAction<ZabbixServerResDTO>) => {
+      console.log('Zabbix server added:', action.payload);
       state.selectedServer = action.payload;
       state.isSelected = true;
-      console.log('Zabbix server added:', action.payload);
     }
   },
 });

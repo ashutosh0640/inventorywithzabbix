@@ -30,6 +30,14 @@ export interface User {
     profilePictureUrl: string;
 }
 
+export interface Group {
+    id: number;
+    name: string;
+    avatar: string;
+    members: number[];
+    admins: number[];
+}
+
 export interface Login {
     id: number;
     username: string;
@@ -177,7 +185,18 @@ export interface RecentActivity {
     username: string;
 }
 
-export type ViewMode = 'card' | 'table';
+export interface Message {
+    id: number;
+    senderId: number;
+    senderUsername: string;
+    receiverId?: number;
+    receiverUsername?: string;
+    groupId?: number;
+    groupName?: string;
+    content: string;
+    messageType: 'TEXT' | 'IMAGE' | 'VIDEO' | 'FILE' | 'SYSTEM' | string;
+    timestamp: string;
+}
 
 
 
