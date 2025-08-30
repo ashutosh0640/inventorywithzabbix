@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppSelector } from '../../slice/hooks';;
-import { Bell, Search } from 'lucide-react';
+import { Bell, Search, MessageCircle } from 'lucide-react';
 import { ThemeToggle } from '../ui/ThemeToggle';
 
 interface HeaderProps {
@@ -35,8 +35,18 @@ const Header: React.FC<HeaderProps> = ({ title, subtitle }) => {
           <button className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
             <span className="sr-only">Notifications</span>
             <div className="relative">
-              <Bell size={20} />
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
+              <Bell className="stroke-[#0764e5] stroke-[3]" size={24} />
+              <span className="absolute -top-3 -right-3 w-6 h-6 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
+                3
+              </span>
+            </div>
+          </button>
+
+          <button className="p-2 text-gray-500 hover:text-gray-700 focus:outline-none">
+            <span className="sr-only">Messages</span>
+            <div className="relative">
+              <MessageCircle className="stroke-[#41c13e] stroke-[3]" size={24} />
+              <span className="absolute -top-3 -right-3 w-6 h-6 bg-red-500 text-white text-xs flex items-center justify-center rounded-full">
                 3
               </span>
             </div>

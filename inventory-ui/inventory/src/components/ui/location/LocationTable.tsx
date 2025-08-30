@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { Location } from '../../../types/responseDto';
 import { ConfirmDeleteModal } from '../ConfirmDeleteModel';
-import { Edit, Trash2, Plus, RectangleGoggles } from 'lucide-react';
+import { Edit, Trash2, Plus } from 'lucide-react';
 
 interface LocationTableProps {
   locations: Location[];

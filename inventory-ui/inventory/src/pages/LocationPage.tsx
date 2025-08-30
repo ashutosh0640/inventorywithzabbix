@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useProjects } from '../features/inventoryQuery/projectQuery';
+//import { useProjects } from '../features/inventoryQuery/projectQuery';
 import { useUsers } from '../features/inventoryQuery/userQuery';
 import { useLocations, useCreateLocation, useUpdateLocation, useDeleteLocation } from '../features/inventoryQuery/locationQuery';
 import { useCreateRack } from '../features/inventoryQuery/rackQuery';
-import type { Project, Location, User } from '../types/responseDto';
+import type { Location, User } from '../types/responseDto';
 import type { LocationReqDTO, RackReqDTO } from '../types/requestDto';
 import { LocationCard } from '../components/ui/location/LocationCard';
 import { LocationTable } from '../components/ui/location/LocationTable';
@@ -33,14 +33,14 @@ const LocationPage: React.FC = () => {
 
   const { data: user } = useUsers();
 
-  const { data: project } = useProjects();
+  //const { data: project } = useProjects();
 
   const { mutate: createRack } = useCreateRack();
   const { mutate: createLocation } = useCreateLocation();
   const { mutate: updateLocation } = useUpdateLocation();
   const { mutate: deleteLocation } = useDeleteLocation();
 
-  const [projects, setProjects] = useState<Project[]>(project || []);
+  // const [projects, setProjects] = useState<Project[]>(project || []);
   const [users, setUsers] = useState<User[]>(user || []);
   const [viewMode, setViewMode] = useState<ViewMode>('table');
   const [searchTerm, setSearchTerm] = useState('');
@@ -63,7 +63,6 @@ const LocationPage: React.FC = () => {
   const handleDelete = (locationId: number) => {
     deleteLocation(locationId, {
       onSuccess: () => {
-        //setLocations(location.filter(l => l.id != locationId));
         setAlertType('success');
         setAlertMessage('Location deleted successfully.');
       },
@@ -160,8 +159,6 @@ const LocationPage: React.FC = () => {
 
   useEffect(() => {
     setUsers(user || []);
-    setProjects(project || []);
-    //setLocations(location || [])
   }, [location, filteredLocations]);
 
 
@@ -190,13 +187,13 @@ const LocationPage: React.FC = () => {
 
             {loginDetails?.role.includes('LOCATION_WRITE_LOCATION') && (
 
-            <button
-              onClick={handleAddLocation}
-              className="inline-flex items-center p-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
-            >
-              <Plus size={16} className="mr-2" />
-              Add Location
-            </button>)}
+              <button
+                onClick={handleAddLocation}
+                className="inline-flex items-center p-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+              >
+                <Plus size={16} className="mr-2" />
+                Add Location
+              </button>)}
           </div>
         </div>
 

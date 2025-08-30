@@ -44,6 +44,7 @@ export const zabbixRoutes: Record<ZabbixRoute, { path: ZabbixRoute }> = {
 };
 
 export const appRoutes: Record<AppRoute, { path: AppRoute }> = {
+  '/messages': { path: '/messages' },
   '/dashboard': { path: '/dashboard' },
   '/project': { path: '/project' },
   ...inventoryRoutes,

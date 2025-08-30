@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Rack } from '../types/responseDto';
 import { useUsers } from '../features/inventoryQuery/userQuery';
@@ -130,7 +130,6 @@ const RacksPage: React.FC = () => {
   };
 
   const handleRackClick = (rackid: number) => {
-    console.log("Handle click is working...")
     navigate(`/inventory/racks/${rackid}`);
   };
 

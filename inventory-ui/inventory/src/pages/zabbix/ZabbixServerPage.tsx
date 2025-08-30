@@ -24,7 +24,7 @@ const ZabbixServerPage: React.FC = () => {
     const { mutate: deleteZabbixServer } = useDeleteZabbixServer();
     const { mutate: updateZabbixServer } = useUpdateZabbixServer();
 
-    const selectedServer = useAppSelector(state => state.zabbixServer.selectedServer);
+    const selectedServer = useAppSelector(state => state.zabbixserver.selectedServer);
 
     const [searchTerm, setSearchTerm] = useState('');
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -65,7 +65,7 @@ const ZabbixServerPage: React.FC = () => {
 
     const handleSelectServer = async (data: ZabbixServerResDTO) => {
         console.log("Selecting Zabbix server: ", data);
-        dispatch({ type: 'zabbix/selectServer', payload: data });
+        dispatch({ type: 'zabbixserver/addServer', payload: data });
         setAlertType('success');
         setAlertMessage(`Selected Zabbix server: ${data.name}`);
         //const selectedServer = useAppSelector(state => state.zabbixServer.selectedServer);
@@ -164,25 +164,6 @@ const ZabbixServerPage: React.FC = () => {
                         ))}
                     </div>
                 )} */}
-
-                {/* Selected Server Info */}
-                {filteredServers && (
-                    <div className="mb-6">
-                        <div className="theme-card rounded-lg p-4 border-l-4 border-blue-500">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <h3 className="text-lg font-semibold theme-text-primary">Selected Server</h3>
-                                    <p className="theme-text-secondary">
-                                        <strong>{selectedServer?.name}</strong> - {selectedServer?.url}
-                                        <span className="ml-2 text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                                            {selectedServer?.id ? selectedServer.name.charAt(0).toUpperCase() + selectedServer.name.slice(1) : 'N/A'}
-                                        </span>
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Loading Overlay */}
                 {/* {isLoading && (

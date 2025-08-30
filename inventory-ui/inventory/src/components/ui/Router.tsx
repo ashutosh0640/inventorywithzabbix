@@ -11,6 +11,7 @@ import PrivateRoute from './PrivateRoutes';
 import { LoginRoute } from '../routes/LoginRoutes';
 import { RackDetails } from '../ui/rack/RackDetails';
 import Devices from '../../pages/DevicePage';
+import HostGroups from '../../pages/zabbix/HostGroups';
 
 
 const Router = () => {
@@ -25,6 +26,7 @@ const Router = () => {
         <Route path="/" element={<PrivateRoute />}>
           <Route path="/" element={<LayoutRoute />}>
             <Route index element={<Navigate to={appRoutes['/dashboard'].path} replace />} />
+            <Route path={appRoutes['/messages'].path} element={<div>Message Components</div>} />
             <Route path={appRoutes['/dashboard'].path} element={<Dashboard />} />
             <Route path={appRoutes['/project'].path} element={<Projects />} />
 
@@ -63,7 +65,7 @@ const Router = () => {
               <Route path='dashboard' element={<div>Zabbix Dashboard</div>} />
               <Route path="problems" element={<div>Zabbix Problems</div>} />
               <Route path="hosts" element={<div>Zabbix Hosts</div>} />
-              <Route path="hostgroup" element={<div>Zabbix Host Groups</div>} />
+              <Route path="hostgroup" element={<HostGroups />} />
               <Route path="templates" element={<div>Zabbix Templates</div>} />
               <Route path="templategroup" element={<div>Zabbix Template Groups</div>} />
               <Route path="management">

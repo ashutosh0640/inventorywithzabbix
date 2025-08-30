@@ -1,5 +1,106 @@
-import type {Project} from './responseDto'
+import type { Project } from './responseDto'
 
+//========================================================//
+//============= Host Related Types =======================//
+//========================================================//
+export interface HostInterface {
+  type: number;
+  main: number;
+  useip: number;
+  ip: string;
+  dns: string;
+  port: string;
+}
+
+export interface HostGroup {
+  groupid: string;
+}
+
+export interface HostTag {
+  tag: string;
+  value: string;
+}
+
+export interface HostTemplate {
+  templateid: string;
+}
+
+export interface HostMacro {
+  macro: string;
+  value: string;
+  description?: string;
+}
+
+export interface HostInventory {
+  macaddress_a?: string;
+  macaddress_b?: string;
+  [key: string]: string | undefined;
+}
+
+export interface HostCreateParams {
+  host: string;
+  interfaces: HostInterface[];
+  groups: HostGroup[];
+  tags?: HostTag[];
+  templates?: HostTemplate[];
+  macros?: HostMacro[];
+  inventory_mode?: number;
+  inventory?: HostInventory;
+}
+//========================================================//
+/**
+ * 'host.delete' Zabbix API method.
+ */
+export type ZabbixHostDeleteParams = string[];
+//========================================================//
+/**
+ * 'host.get' Zabbix API method.
+ */
+export interface HostTagFilter {
+  tag: string;
+  value: string;
+  operator?: number;
+}
+
+export interface HostGetParams {
+  output?: string[] | 'extend';
+  filter?: {
+    host?: string[];
+    [key: string]: any;
+  };
+  hostids?: string | number | (string | number)[];
+  templateids?: string | number | (string | number)[];
+  selectHostGroups?: string | string[];
+  selectParentTemplates?: string[];
+  selectInventory?: string[] | 'extend';
+  searchInventory?: { [key: string]: string };
+  tags?: HostTagFilter[];
+  inheritedTags?: boolean;
+  selectTags?: string[] | 'extend';
+  selectInheritedTags?: string[] | 'extend';
+  evaltype?: number;
+  severities?: number[];
+  [key: string]: any; // Catch-all for other optional fields
+}
+//========================================================//
+//============= Problem Related Types ====================//
+//========================================================//
+/**
+ * 'problem.get' Zabbix API method.
+ */
+export interface ZabbixProblemGetParams {
+  output?: 'extend' | 'refer' | string[];
+  selectAcknowledges?: 'extend' | string;
+  selectTags?: 'extend' | string;
+  selectSuppressionData?: 'extend' | string;
+  objectids?: string | string[];
+  recent?: boolean;
+  sortfield?: string[];
+  sortorder?: 'ASC' | 'DESC' | ('ASC' | 'DESC')[];
+  // Add any other problem.get parameters you might use
+  [key: string]: any;
+}
+//========================================================//
 
 export interface ZabbixServerReqDTO {
   name: string;
@@ -129,7 +230,9 @@ export interface UserGroup {
   serverId: string;
 }
 
-export type NavigationItem = 
+
+
+export type NavigationItem =
   | 'dashboard'
   | 'projects'
   | 'servers'

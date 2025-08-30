@@ -1,6 +1,6 @@
 import React from 'react';
 import type { ZabbixServerResDTO } from '../../../types/zabbix';
-import { Server, Globe, FolderOpen, Trash2, Edit3, CheckCircle } from 'lucide-react';
+import { Trash2, Edit3, CircleCheckBig  } from 'lucide-react';
 
 interface ZabbixServerCardProps {
   server: ZabbixServerResDTO;
@@ -25,6 +25,8 @@ export const ZabbixServerCard: React.FC<ZabbixServerCardProps> = ({
         return 'bg-gradient-to-r from-green-600 to-green-400';
       case 'OFFLINE':
         return 'bg-gradient-to-r from-red-600 to-red-400';
+      case "ERROR":
+        return 'bg-gradient-to-r from-yellow-600 to-yellow-400';
       default:
         return 'bg-gradient-to-r from-gray-600 to-gray-400';
     }
@@ -32,12 +34,13 @@ export const ZabbixServerCard: React.FC<ZabbixServerCardProps> = ({
 
   return (
     <div className={`max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden transform cursor-pointer hover:scale-95 transition-transform duration-100 ease-in-out 
-      ${isSelected ? 'ring-2 ring-blue-500 theme-bg-tertiary' : ''
+      ${isSelected ? 'ring-2 ring-gray-500 theme-bg-tertiary' : ''
       }`} onClick={() => onSelect(server)}>
 
       {/* Card Header */}
       <div id="cardHeader" className={`p-5 flex justify-between items-center transition-colors duration-300 ${getStatusClass()}  `}>
         <h2 className="text-xl font-bold text-white">{server.name}</h2>
+          {isSelected && <CircleCheckBig className="w-8 h-8 text-white" />}
         <span id="status" className="px-4 py-1.5 text-sm font-semibold text-green-800 bg-white/90 rounded-full shadow-sm">{server.status}</span>
       </div>
 
@@ -57,7 +60,7 @@ export const ZabbixServerCard: React.FC<ZabbixServerCardProps> = ({
 
       {/* Card Footer */}
       <div className="px-6 py-4 bg-gray-50 flex justify-end items-center space-x-4">
-        <button className="p-2 rounded-full text-green-500 hover:bg-green-200 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors" disabled={isLoading}>
+        <button className="p-2 rounded-full text-blue-500 hover:bg-green-200 hover:text-green-700 focus:outline-none focus:ring-2 focus:ring-green-400 transition-colors" disabled={isLoading}>
           <Edit3 className="w-5 h-5" onClick={(e) => {
             e.stopPropagation();
             onEdit(server);

@@ -35,6 +35,7 @@ export type ZabbixRoute =
   '/zabbix/management/token';
 
 export type AppRoute = 
+  '/messages' |
   '/dashboard' |
   '/project' |
   InventoryRoute |

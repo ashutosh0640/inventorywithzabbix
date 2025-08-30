@@ -42,6 +42,8 @@ const NavItem: React.FC<NavItemProps> = ({
   isExpanded = false,
   children
 }) => {
+  const selectedServer = useAppSelector(state => state.zabbixserver.selectedServer);
+
   return (
     <div className="mb-1">
       <button
@@ -85,6 +87,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
   const loginDetails = useAppSelector((state) => state.auth.loginDetails);
+  const selectedServer = useAppSelector(state => state.zabbixserver.selectedServer);
   const dispatch = useAppDispatch();
   const logout = () => dispatch({ type: 'auth/logout' });
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -176,6 +179,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
           <X size={20} />
         </button>
       </div>
+      <div>
+        {selectedServer && (
+          <div className={`p-4 border-b border-gray-200 ${selectedServer.status === 'CONNECTED' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+            {/* <p className="text-sm font-medium text-gray-600">Selected Zabbix Server:</p> */}
+            <p className="text-base font-bold">{selectedServer.project.name} | {selectedServer.name}</p>
+            <p className="text-xs font-bold">{selectedServer.status}</p>
+          </div>
+        )}
+      </div>
 
       <div className="flex-1 p-4 overflow-y-auto">
         <NavItem
@@ -231,15 +243,15 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
           />
         </NavItem>
 
-        { loginDetails?.role.includes('ROLE_ROOT') && (
+        {loginDetails?.role.includes('ROLE_ROOT') && (
 
-        <NavItem
-          icon={<Settings size={16} />}
-          label="Settings"
-          isActive={currentPath === '/settings'}
-          onClick={() => onNavigate('/settings')}
-        />)}
-        
+          <NavItem
+            icon={<Settings size={16} />}
+            label="Settings"
+            isActive={currentPath === '/settings'}
+            onClick={() => onNavigate('/settings')}
+          />)}
+
 
         <NavItem
           icon={<Database size={16} />}
@@ -254,82 +266,87 @@ const Sidebar: React.FC<SidebarProps> = ({ onNavigate, currentPath }) => {
             isActive={currentPath === '/zabbix/server'}
             onClick={() => onNavigate('/zabbix/server')}
           />
-          <NavItem
-            icon={<ChartArea size={16} />}
-            label="Dashboard"
-            isActive={currentPath === '/zabbix/dashboard'}
-            onClick={() => onNavigate('/zabbix/dashboard')}
-          />
-          <NavItem
-            icon={<BellRing size={16} />}
-            label="Problems"
-            isActive={currentPath === '/zabbix/problems'}
-            onClick={() => onNavigate('/zabbix/problems')}
-          />
-          <NavItem
-            icon={<Monitor size={16} />}
-            label="Hosts"
-            isActive={currentPath === '/zabbix/hosts'}
-            onClick={() => onNavigate('/zabbix/hosts')}
-          />
-          <NavItem
-            icon={<Group size={16} />}
-            label="Host Group"
-            isActive={currentPath === '/zabbix/hostgroup'}
-            onClick={() => onNavigate('/zabbix/hostgroup')}
-          />
-          <NavItem
-            icon={<NotebookText size={16} />}
-            label="Template"
-            isActive={currentPath === '/zabbix/templates'}
-            onClick={() => onNavigate('/zabbix/templates')}
-          />
-          <NavItem
-            icon={<NotepadText size={16} />}
-            label="Template Group"
-            isActive={currentPath === '/zabbix/templategroup'}
-            onClick={() => onNavigate('/zabbix/templategroup')}
-          />
+          {selectedServer && selectedServer.status == 'CONNECTED' && (
+            <>
+              <NavItem
+                icon={<ChartArea size={16} />}
+                label="Dashboard"
+                isActive={currentPath === '/zabbix/dashboard'}
+                onClick={() => onNavigate('/zabbix/dashboard')}
+              />
+              <NavItem
+                icon={<BellRing size={16} />}
+                label="Problems"
+                isActive={currentPath === '/zabbix/problems'}
+                onClick={() => onNavigate('/zabbix/problems')}
+              />
+              <NavItem
+                icon={<Monitor size={16} />}
+                label="Hosts"
+                isActive={currentPath === '/zabbix/hosts'}
+                onClick={() => onNavigate('/zabbix/hosts')}
+              />
+              <NavItem
+                icon={<Group size={16} />}
+                label="Host Group"
+                isActive={currentPath === '/zabbix/hostgroup'}
+                onClick={() => onNavigate('/zabbix/hostgroup')}
+              />
+              <NavItem
+                icon={<NotebookText size={16} />}
+                label="Template"
+                isActive={currentPath === '/zabbix/templates'}
+                onClick={() => onNavigate('/zabbix/templates')}
+              />
+              <NavItem
+                icon={<NotepadText size={16} />}
+                label="Template Group"
+                isActive={currentPath === '/zabbix/templategroup'}
+                onClick={() => onNavigate('/zabbix/templategroup')}
+              />
 
-          <NavItem
-            icon={<Database size={16} />}
-            label="Management"
-            hasSubmenu
-            isExpanded={expandedMenus.zabbix_management}
-            onClick={() => toggleMenu('zabbix_management')}
-          >
-            <NavItem
-              icon={<User size={16} />}
-              label="Users"
-              isActive={currentPath === '/zabbix/management/users'}
-              onClick={() => onNavigate('/zabbix/management/users')}
-            />
-            <NavItem
-              icon={<Users size={16} />}
-              label="User Group"
-              isActive={currentPath === '/zabbix/management/usergroup'}
-              onClick={() => onNavigate('/zabbix/management/usergroup')}
-            />
-            <NavItem
-              icon={<NotepadText size={16} />}
-              label="User Role"
-              isActive={currentPath === '/zabbix/management/userrole'}
-              onClick={() => onNavigate('/zabbix/management/userrole')}
-            />
-            <NavItem
-              icon={<NotepadText size={16} />}
-              label="Authentication"
-              isActive={currentPath === '/zabbix/management/auth'}
-              onClick={() => onNavigate('/zabbix/management/auth')}
-            />
-            <NavItem
-              icon={<NotepadText size={16} />}
-              label="API Token"
-              isActive={currentPath === '/zabbix/management/token'}
-              onClick={() => onNavigate('/zabbix/management/token')}
-            />
+              <NavItem
+                icon={<Database size={16} />}
+                label="Management"
+                hasSubmenu
+                isExpanded={expandedMenus.zabbix_management}
+                onClick={() => toggleMenu('zabbix_management')}
+              >
+                <NavItem
+                  icon={<User size={16} />}
+                  label="Users"
+                  isActive={currentPath === '/zabbix/management/users'}
+                  onClick={() => onNavigate('/zabbix/management/users')}
+                />
+                <NavItem
+                  icon={<Users size={16} />}
+                  label="User Group"
+                  isActive={currentPath === '/zabbix/management/usergroup'}
+                  onClick={() => onNavigate('/zabbix/management/usergroup')}
+                />
+                <NavItem
+                  icon={<NotepadText size={16} />}
+                  label="User Role"
+                  isActive={currentPath === '/zabbix/management/userrole'}
+                  onClick={() => onNavigate('/zabbix/management/userrole')}
+                />
+                <NavItem
+                  icon={<NotepadText size={16} />}
+                  label="Authentication"
+                  isActive={currentPath === '/zabbix/management/auth'}
+                  onClick={() => onNavigate('/zabbix/management/auth')}
+                />
+                <NavItem
+                  icon={<NotepadText size={16} />}
+                  label="API Token"
+                  isActive={currentPath === '/zabbix/management/token'}
+                  onClick={() => onNavigate('/zabbix/management/token')}
+                />
 
-          </NavItem>
+              </NavItem>
+            </>
+
+          )}
 
         </NavItem>
         {/* <NavItem

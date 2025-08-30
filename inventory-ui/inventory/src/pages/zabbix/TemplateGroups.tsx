@@ -7,10 +7,6 @@ import type { ZabbixTemplateGroup } from '../../types/ZabbixTemplateGroups';
 
 interface TemplateGroupFormData {
   name: string;
-  description?: string;
-  templates: string[];
-  subgroups: string[];
-  permissions: string[];
 }
 
 export function TemplateGroups() {
@@ -18,7 +14,6 @@ export function TemplateGroups() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [sizeFilter, setSizeFilter] = useState<string>('all');
-  const [isDemo, setIsDemo] = useState(false);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -27,99 +22,34 @@ export function TemplateGroups() {
   const [editingGroup, setEditingGroup] = useState<ZabbixTemplateGroup | null>(null);
   const [massAction, setMassAction] = useState<'enable' | 'disable' | 'delete' | 'update' | 'clone' | 'merge'>('enable');
   const [formData, setFormData] = useState<TemplateGroupFormData>({
-    name: '',
-    templates: [],
-    subgroups: [],
-    permissions: []
+    name: ''
   });
 
+
+ 
+
   const fetchTemplateGroups = async () => {
-    if (!state.currentServer) return;
 
     try {
       setLoading(true);
-      const data = await apiService.getTemplateGroups(state.currentServer.id);
-      setTemplateGroups(data);
-      setIsDemo(false);
     } catch (error) {
       console.warn('API not available, using demo data:', error);
-      setIsDemo(true);
-      // Mock data for demonstration
-      setTemplateGroups([
-        {
-          id: '1',
-          name: 'Templates/Operating systems',
-          description: 'Operating system monitoring templates',
-          templates: 8,
-          subgroups: ['Templates/Linux', 'Templates/Windows'],
-          permissions: ['Read-write'],
-          serverId: state.currentServer.id
-        },
-        {
-          id: '2',
-          name: 'Templates/Applications',
-          description: 'Application monitoring templates',
-          templates: 15,
-          subgroups: ['Templates/Web servers', 'Templates/Databases'],
-          permissions: ['Read'],
-          serverId: state.currentServer.id
-        },
-        {
-          id: '3',
-          name: 'Templates/Databases',
-          description: 'Database monitoring templates',
-          templates: 6,
-          subgroups: [],
-          permissions: ['Read-write'],
-          serverId: state.currentServer.id
-        },
-        {
-          id: '4',
-          name: 'Templates/Network devices',
-          description: 'Network equipment monitoring templates',
-          templates: 12,
-          subgroups: ['Templates/Switches', 'Templates/Routers'],
-          permissions: ['Read'],
-          serverId: state.currentServer.id
-        },
-        {
-          id: '5',
-          name: 'Templates/Virtualization',
-          description: 'Virtualization platform templates',
-          templates: 4,
-          subgroups: [],
-          permissions: ['Read-write'],
-          serverId: state.currentServer.id
-        }
-      ]);
+      
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreateGroup = async () => {
-    if (!state.currentServer) return;
 
     try {
-      const newGroup = await apiService.createTemplateGroup(state.currentServer.id, {
-        ...formData,
-        serverId: state.currentServer.id
-      });
       
-      setTemplateGroups(prev => [...prev, newGroup]);
       setShowCreateModal(false);
       resetForm();
     } catch (error) {
       console.error('Failed to create template group:', error);
       // For demo mode, simulate creation
-      if (isDemo) {
-        const newGroup: TemplateGroup = {
-          id: Date.now().toString(),
-          ...formData,
-          templates: formData.templates.length,
-          serverId: state.currentServer.id
-        };
-        setTemplateGroups(prev => [...prev, newGroup]);
+      
         setShowCreateModal(false);
         resetForm();
       }
@@ -127,92 +57,44 @@ export function TemplateGroups() {
   };
 
   const handleUpdateGroup = async () => {
-    if (!state.currentServer || !editingGroup) return;
 
     try {
-      const updatedGroup = await apiService.updateTemplateGroup(
-        state.currentServer.id, 
-        editingGroup.id, 
-        formData
-      );
       
-      setTemplateGroups(prev => prev.map(group => 
-        group.id === editingGroup.id ? { ...group, ...updatedGroup } : group
-      ));
       setShowEditModal(false);
       setEditingGroup(null);
       resetForm();
     } catch (error) {
       console.error('Failed to update template group:', error);
-      // For demo mode, simulate update
-      if (isDemo) {
-        setTemplateGroups(prev => prev.map(group => 
-          group.id === editingGroup.id ? { ...group, ...formData, templates: formData.templates.length } : group
-        ));
-        setShowEditModal(false);
-        setEditingGroup(null);
-        resetForm();
-      }
+      
     }
   };
 
   const handleDeleteGroup = async (groupId: string) => {
-    if (!state.currentServer) return;
-    
-    if (!confirm('Are you sure you want to delete this template group? This action cannot be undone.')) return;
 
     try {
-      await apiService.deleteTemplateGroup(state.currentServer.id, groupId);
-      setTemplateGroups(prev => prev.filter(group => group.id !== groupId));
+      
     } catch (error) {
       console.error('Failed to delete template group:', error);
-      // For demo mode, simulate deletion
-      if (isDemo) {
-        setTemplateGroups(prev => prev.filter(group => group.id !== groupId));
-      }
+      
     }
   };
 
   const handleMassAction = async () => {
-    if (!state.currentServer || selectedGroups.length === 0) return;
 
     try {
       switch (massAction) {
         case 'delete':
-          if (!confirm(`Are you sure you want to delete ${selectedGroups.length} template groups?`)) return;
-          await apiService.massRemoveTemplateGroups(state.currentServer.id, selectedGroups);
-          setTemplateGroups(prev => prev.filter(group => !selectedGroups.includes(group.id)));
+          
           break;
         case 'update':
-          await apiService.massUpdateTemplateGroups(state.currentServer.id, selectedGroups, formData);
-          setTemplateGroups(prev => prev.map(group => 
-            selectedGroups.includes(group.id) ? { ...group, ...formData, templates: formData.templates.length } : group
-          ));
+          
           break;
         case 'clone':
-          const clonedGroups = templateGroups
-            .filter(group => selectedGroups.includes(group.id))
-            .map(group => ({
-              ...group,
-              id: `${group.id}-clone-${Date.now()}`,
-              name: `${group.name}-clone`
-            }));
-          setTemplateGroups(prev => [...prev, ...clonedGroups]);
+          
           break;
         case 'merge':
           // Merge selected groups into one
-          const selectedGroupsData = templateGroups.filter(group => selectedGroups.includes(group.id));
-          const mergedTemplates = selectedGroupsData.reduce((sum, group) => sum + group.templates, 0);
-          const mergedGroup: TemplateGroup = {
-            id: Date.now().toString(),
-            name: formData.name || 'Merged Group',
-            description: formData.description || 'Merged from multiple groups',
-            templates: mergedTemplates,
-            subgroups: formData.subgroups,
-            permissions: formData.permissions,
-            serverId: state.currentServer.id
-          };
-          setTemplateGroups(prev => [...prev.filter(group => !selectedGroups.includes(group.id)), mergedGroup]);
+          
           break;
       }
       
@@ -225,48 +107,28 @@ export function TemplateGroups() {
   };
 
   const handlePropagateSettings = async () => {
-    if (!state.currentServer || selectedGroups.length === 0) return;
 
     try {
-      await apiService.propagateTemplateGroupSettings(state.currentServer.id, selectedGroups, formData);
-      // Update UI to reflect propagated settings
-      setTemplateGroups(prev => prev.map(group => 
-        selectedGroups.includes(group.id) ? { ...group, permissions: formData.permissions } : group
-      ));
       setShowPropagateModal(false);
       setSelectedGroups([]);
       resetForm();
     } catch (error) {
       console.error('Failed to propagate settings:', error);
       // For demo mode, simulate propagation
-      if (isDemo) {
-        setTemplateGroups(prev => prev.map(group => 
-          selectedGroups.includes(group.id) ? { ...group, permissions: formData.permissions } : group
-        ));
-        setShowPropagateModal(false);
-        setSelectedGroups([]);
-        resetForm();
-      }
+      
     }
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      templates: [],
-      subgroups: [],
-      permissions: []
+      name: ''
     });
   };
 
-  const openEditModal = (group: TemplateGroup) => {
+  const openEditModal = (group: ZabbixTemplateGroup) => {
     setEditingGroup(group);
     setFormData({
-      name: group.name,
-      description: group.description,
-      templates: Array.isArray(group.templates) ? group.templates : [],
-      subgroups: group.subgroups || [],
-      permissions: group.permissions || []
+      name: group.name
     });
     setShowEditModal(true);
   };
@@ -310,7 +172,7 @@ export function TemplateGroups() {
     return matchesSearch && matchesSize;
   });
 
-  if (!state.currentServer) {
+  if (!selectedServer) {
     return (
       <div className="p-6">
         <div className="text-center py-12">

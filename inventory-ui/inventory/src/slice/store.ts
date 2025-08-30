@@ -8,7 +8,7 @@ export const store = configureStore({
   reducer: {
     auth: authReducer,
     app: appReducer,
-    zabbixServer: zabbixServerReducer,
+    zabbixserver: zabbixServerReducer,
   },
 });
 

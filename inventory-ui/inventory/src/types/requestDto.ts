@@ -11,6 +11,14 @@ export interface UserReqDTO {
     profilePicture?: String | File | Blob;
 }
 
+export interface MessageReqDTO {
+    senderId: number;
+    receiverId?: number;
+    groupId?: number;
+    content: string;
+    messageType: 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';
+}
+
 export interface RoleReqDTO {
     roleName: string;
     permissionId?: number[];
@@ -136,15 +144,6 @@ export type HostType =
     | 'FIREWALL'
     | 'ACCESS_POINT';
 
-export type ManagementType =
-    | 'ILO'
-    | 'IDRAC'
-    | 'KVM'
-    | 'IPMI'
-    | 'RMM'
-    | 'CIMC'
-    | 'BMC_GENERIC'
-    | 'OTHER';
 
 
 export type ServerVendor =
@@ -164,3 +163,6 @@ export type ServerVendor =
     | 'Samsung'
     | 'MSI'
     | 'Gigabyte';
+
+
+export type MessageType = 'TEXT' | 'IMAGE' | 'FILE' | 'SYSTEM';

@@ -1,4 +1,5 @@
 import api from '../inventoryapi';
+import type { ZabbixHostGroup } from '../../types/zabbix';
 
 export const zabbixHostGroupsAPI = {
   create: async (projectId: number, data: object) => {
@@ -13,9 +14,9 @@ export const zabbixHostGroupsAPI = {
     return response.data;
   },
 
-  get: async (projectId: number, params: object) => {
+  get: async(projectId: number, params: object): Promise<ZabbixHostGroup[]> => {
     const response = await api.post(`/api/v1/zabbix/hostgroups/get/${projectId}`, params);
-    return response.data;
+    return response.data.result as ZabbixHostGroup[];
   },
 
   massAdd: async (projectId: number, params: object) => {

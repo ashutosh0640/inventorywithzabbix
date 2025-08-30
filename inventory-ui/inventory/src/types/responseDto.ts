@@ -38,6 +38,18 @@ export interface Group {
     admins: number[];
 }
 
+export interface Message {
+    id: number;
+    senderId: number;
+    senderUsername: string;
+    receiverId: number;
+    receiverUsername: string;
+    groupId: number;
+    groupName: string;
+    content: string;
+    messageType: string;
+}
+
 export interface Login {
     id: number;
     username: string;
