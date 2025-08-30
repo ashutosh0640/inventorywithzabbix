@@ -1,6 +1,5 @@
 package com.ashutosh0640.inventy.zabbix.controller;
 
-import com.ashutosh0640.inventy.zabbix.service.ZabbixHostService;
 import com.ashutosh0640.inventy.zabbix.service.ZabbixProblemService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -16,7 +15,7 @@ import java.util.Map;
 public class ZabbixProblemController {
 
     private final ZabbixProblemService problemService;
-    private final Logger LOGGER = LoggerFactory.getLogger(ZabbixHostService.class);
+    private final Logger LOGGER = LoggerFactory.getLogger(ZabbixProblemController.class);
 
     public ZabbixProblemController(ZabbixProblemService problemService) {
         this.problemService = problemService;

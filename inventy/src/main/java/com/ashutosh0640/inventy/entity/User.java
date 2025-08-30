@@ -30,7 +30,7 @@ public class User {
     private String phoneNumber;
 
     @Column(name = "is_active")
-    private Boolean isActive = true;
+    private Boolean isActive = false;
 
     @Column(name = "is_blocked")
     private Boolean isBlocked = false;

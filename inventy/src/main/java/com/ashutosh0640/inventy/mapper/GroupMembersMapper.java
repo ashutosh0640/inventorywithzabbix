@@ -18,10 +18,15 @@ public class GroupMembersMapper {
     public static GroupMembersResponseDTO toDTO(GroupMembers gm) {
         GroupMembersResponseDTO dto = new GroupMembersResponseDTO();
         dto.setId(gm.getId());
-        dto.setGroupResponseDTO(GroupMapper.toDTO(gm.getGroup()));
         dto.setUserResponseDTO(UserMapper.toDTO(gm.getUser()));
         dto.setAdmin(gm.isAdmin());
         dto.setJoinTime(gm.getJoinDate());
+        return dto;
+    }
+
+    public static GroupMembersResponseDTO toDTO(GroupMembers gm, Group group) {
+        GroupMembersResponseDTO dto = toDTO(gm);
+        dto.setGroupResponseDTO(GroupMapper.toDTO(gm.getGroup()));
         return dto;
     }
 }

@@ -11,9 +11,12 @@ import java.util.List;
 
 @Repository
 public interface GroupRepository extends JpaRepository<Group, Long> {
-    @Query("SELECT g FROM Group g JOIN g.members m WHERE m = :user")
-    List<Group> findGroupsByMember(@Param("user") User user);
+
+    @Query("SELECT g FROM Group g JOIN g.members m WHERE m.user.id = :userId")
+    List<Group> findGroupsByMember(@Param("userId") Long userId);
 
     List<Group> findByCreatedBy(User createdBy);
+
     List<Group> findByActiveTrue();
+
 }

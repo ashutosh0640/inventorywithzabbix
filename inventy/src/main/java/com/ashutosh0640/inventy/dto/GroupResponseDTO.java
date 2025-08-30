@@ -12,7 +12,7 @@ public class GroupResponseDTO {
     private String name;
 
     private String description;
-    private User createdBy;
+    private UserResponseDTO createdBy;
     private LocalDateTime createdAt;
 
     private boolean active = true;
@@ -24,7 +24,7 @@ public class GroupResponseDTO {
             Long id,
             String name,
             String description,
-            User createdBy,
+            UserResponseDTO createdBy,
             LocalDateTime createdAt,
             boolean active,
             Set<GroupMembersResponseDTO> members) {
@@ -61,11 +61,11 @@ public class GroupResponseDTO {
         this.description = description;
     }
 
-    public User getCreatedBy() {
+    public UserResponseDTO getCreatedBy() {
         return createdBy;
     }
 
-    public void setCreatedBy(User createdBy) {
+    public void setCreatedBy(UserResponseDTO createdBy) {
         this.createdBy = createdBy;
     }
 

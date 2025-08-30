@@ -1,7 +1,9 @@
 package com.ashutosh0640.inventy.controller;
 
+import com.ashutosh0640.inventy.dto.GroupMembersResponseDTO;
 import com.ashutosh0640.inventy.entity.GroupMembers;
 import com.ashutosh0640.inventy.service.GroupMembersService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,27 +21,31 @@ public class GroupMembersController {
     }
 
     @PostMapping
-    public ResponseEntity<List<GroupMembers>> saveAll(@RequestBody List<GroupMembers> members) {
-        List<GroupMembers> savedMembers = groupMembersService.saveAll(members);
-        return new ResponseEntity<>(savedMembers, HttpStatus.CREATED);
+    public void saveAll(@RequestBody List<GroupMembers> members) {
+        groupMembersService.saveAll(members);
     }
 
     @PostMapping("/save")
-    public ResponseEntity<GroupMembers> save(GroupMembers member) {
-        GroupMembers savedMember = groupMembersService.save(member);
+    public ResponseEntity<GroupMembersResponseDTO> save(GroupMembers member) {
+        GroupMembersResponseDTO savedMember = groupMembersService.save(member);
         return new ResponseEntity<>(savedMember, HttpStatus.CREATED);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<GroupMembers> addMember(@RequestParam Long groupId, @RequestParam Long userId, @RequestParam(defaultValue = "false") Boolean isAdmin) {
-        GroupMembers savedMember = groupMembersService.addMember(groupId, userId, isAdmin);
+    public ResponseEntity<GroupMembersResponseDTO> addMember(@RequestParam Long groupId, @RequestParam Long userId, @RequestParam(defaultValue = "false") Boolean isAdmin) {
+        GroupMembersResponseDTO savedMember = groupMembersService.addMember(groupId, userId, isAdmin);
         return new ResponseEntity<>(savedMember, HttpStatus.CREATED);
     }
 
     @PostMapping("/group")
-    public ResponseEntity<List<GroupMembers>> getByGroup(@RequestParam Long groupId) {
-        List<GroupMembers> savedMembers = groupMembersService.getByGroup(groupId);
+    public ResponseEntity<List<GroupMembersResponseDTO>> getByGroup(@RequestParam Long groupId) {
+        List<GroupMembersResponseDTO> savedMembers = groupMembersService.getByGroup(groupId);
         return new ResponseEntity<>(savedMembers, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/page")
+    public Page<GroupMembersResponseDTO> getByGroupAndPage(@RequestParam Long groupId, @RequestParam Integer pageNumber, @RequestParam Integer pageSize) {
+        return groupMembersService.getByGroupAndPage(groupId, pageNumber, pageSize);
     }
 
     @PatchMapping("/changeAdmin")

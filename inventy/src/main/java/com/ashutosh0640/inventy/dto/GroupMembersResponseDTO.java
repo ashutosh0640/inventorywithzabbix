@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 
 public class GroupMembersResponseDTO {
     private Long id;
-    private GroupResponseDTO groupResponseDTO;
-    private UserResponseDTO userResponseDTO;
+    private GroupResponseDTO group;
+    private UserResponseDTO user;
     private Boolean isAdmin;
     private LocalDateTime joinTime;
 
@@ -13,13 +13,13 @@ public class GroupMembersResponseDTO {
 
     public GroupMembersResponseDTO(
             Long id,
-            GroupResponseDTO groupResponseDTO,
-            UserResponseDTO userResponseDTO,
+            GroupResponseDTO group,
+            UserResponseDTO user,
             Boolean isAdmin,
             LocalDateTime joinTime) {
         this.id = id;
-        this.groupResponseDTO = groupResponseDTO;
-        this.userResponseDTO = userResponseDTO;
+        this.group = group;
+        this.user = user;
         this.isAdmin = isAdmin;
         this.joinTime = joinTime;
     }
@@ -33,22 +33,22 @@ public class GroupMembersResponseDTO {
     }
 
     public GroupResponseDTO getGroupResponseDTO() {
-        return groupResponseDTO;
+        return group;
     }
 
     public void setGroupResponseDTO(GroupResponseDTO groupResponseDTO) {
-        this.groupResponseDTO = groupResponseDTO;
+        this.group = groupResponseDTO;
     }
 
-    public UserResponseDTO getUserResponseDTO(UserResponseDTO dto) {
-        return userResponseDTO;
+    public UserResponseDTO getUserResponseDTO() {
+        return user;
     }
 
     public void setUserResponseDTO(UserResponseDTO userResponseDTO) {
-        this.userResponseDTO = userResponseDTO;
+        this.user = userResponseDTO;
     }
 
-    public Boolean getAdmin(boolean admin) {
+    public Boolean getAdmin() {
         return isAdmin;
     }
 
@@ -63,5 +63,4 @@ public class GroupMembersResponseDTO {
     public void setJoinTime(LocalDateTime joinTime) {
         this.joinTime = joinTime;
     }
-
 }

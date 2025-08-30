@@ -1,12 +1,17 @@
 package com.ashutosh0640.inventy.service;
 
+import com.ashutosh0640.inventy.dto.GroupMembersResponseDTO;
 import com.ashutosh0640.inventy.entity.Group;
 import com.ashutosh0640.inventy.entity.GroupMembers;
 import com.ashutosh0640.inventy.entity.User;
 import com.ashutosh0640.inventy.exception.ResourceNotFoundException;
+import com.ashutosh0640.inventy.mapper.GroupMembersMapper;
 import com.ashutosh0640.inventy.repository.GroupMembersRepository;
 import com.ashutosh0640.inventy.repository.GroupRepository;
 import com.ashutosh0640.inventy.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,15 +31,16 @@ public class GroupMembersService {
         this.userRepository = userRepository;
     }
 
-    public List<GroupMembers> saveAll(List<GroupMembers> members) {
-        return groupMembersRepository.saveAll(members);
+    public void saveAll(List<GroupMembers> members) {
+        groupMembersRepository.saveAll(members);
     }
 
-    public GroupMembers save(GroupMembers member) {
-        return groupMembersRepository.save(member);
+    public GroupMembersResponseDTO save(GroupMembers member) {
+        GroupMembers mem = groupMembersRepository.save(member);
+        return GroupMembersMapper.toDTO(mem);
     }
 
-    public GroupMembers addMember(Long groupId, Long userId, Boolean isAdmin) {
+    public GroupMembersResponseDTO addMember(Long groupId, Long userId, Boolean isAdmin) {
         Group group = groupRepository.getReferenceById(groupId);
         User user = userRepository.getReferenceById(userId);
         GroupMembers gm = new GroupMembers();
@@ -44,16 +50,24 @@ public class GroupMembersService {
         return this.save(gm);
     }
 
-    public List<GroupMembers> getByGroup(Long groupId) {
+    public List<GroupMembersResponseDTO> getByGroup(Long groupId) {
         Group group = groupRepository.findById(groupId)
                 .orElseThrow(()->new ResourceNotFoundException("Group not found by id: "+groupId));
-        return groupMembersRepository.findByGroup(group);
+        List<GroupMembers> members = groupMembersRepository.findByGroup(group);
+        return members.stream().map(GroupMembersMapper::toDTO).toList();
+    }
+
+    public Page<GroupMembersResponseDTO> getByGroupAndPage(Long groupId, Integer pageNumber, Integer pageSize) {
+        Pageable page =  PageRequest.of(pageNumber, pageSize);
+        Page<GroupMembers> members = groupMembersRepository.findAll(page);
+        return members.map(GroupMembersMapper::toDTO);
     }
 
     public Boolean changeAdmin(Long memberId) {
-        GroupMembers gm = groupMembersRepository.getReferenceById(memberId);
+        GroupMembers gm = groupMembersRepository.findById(memberId)
+                        .orElseThrow(()->new ResourceNotFoundException("Group member not found by id: "+memberId));
         gm.setAdmin(!gm.isAdmin());
-        gm = this.save(gm);
+        gm = groupMembersRepository.save(gm);
         return gm.isAdmin();
     }
 

@@ -1,6 +1,5 @@
 package com.ashutosh0640.inventy.mapper;
 
-import com.ashutosh0640.inventy.dto.RoleResponseDTO;
 import com.ashutosh0640.inventy.dto.UserRequestDTO;
 import com.ashutosh0640.inventy.dto.UserResponseDTO;
 import com.ashutosh0640.inventy.entity.Role;
@@ -49,7 +48,6 @@ public class UserMapper {
         dto.setUpdatedAt(user.getUpdatedAt());
         return dto;
     }
-
 
     public static UserResponseDTO toDTO(User user, Role role) {
         UserResponseDTO userDto = toDTO(user);

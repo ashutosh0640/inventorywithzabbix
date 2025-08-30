@@ -29,6 +29,8 @@ public class Group {
 
     private boolean active = true;
 
+
+
     @OneToMany(mappedBy = "group", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<GroupMembers> members = new HashSet<>();
 

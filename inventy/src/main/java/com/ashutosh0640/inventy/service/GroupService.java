@@ -1,9 +1,11 @@
 package com.ashutosh0640.inventy.service;
 
+import com.ashutosh0640.inventy.dto.GroupResponseDTO;
 import com.ashutosh0640.inventy.entity.Group;
 import com.ashutosh0640.inventy.entity.GroupMembers;
 import com.ashutosh0640.inventy.entity.User;
 import com.ashutosh0640.inventy.enums.NotificationType;
+import com.ashutosh0640.inventy.mapper.GroupMapper;
 import com.ashutosh0640.inventy.repository.GroupRepository;
 import com.ashutosh0640.inventy.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +13,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 
 @Service
@@ -26,7 +27,7 @@ public class GroupService {
     @Autowired
     private NotificationService notificationService;
 
-    public Group createGroup(String name, String description) {
+    public GroupResponseDTO createGroup(String name, String description) {
         final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
         User creator = userRepository.getReferenceById(userId);
 
@@ -47,20 +48,20 @@ public class GroupService {
         group = groupRepository.save(group);
 
         // Notify all members about group creation
-//        members.forEach(member -> {
-//            if (!member.getId().equals(createdById)) {
-//                notificationService.createNotification(
-//                        member,
-//                        "Added to Group",
-//                        "You've been added to group: " + name,
-//                        NotificationType.USER_ACTION
-//                    );
-//                }
-//            });
-        return group;
+        members.forEach(member -> {
+            if (!member.getId().equals(userId)) {
+                notificationService.createNotification(
+                        member.getUser(),
+                        "Added to Group",
+                        "You've been added to group: " + name,
+                        NotificationType.USER_ACTION
+                );
+            }
+        });
+        return GroupMapper.toDTO(group, group.getMembers());
     }
 
-    public Group addMembersToGroup(Long groupId, List<Long> usersId) {
+    public GroupResponseDTO addMembersToGroup(Long groupId, List<Long> usersId) {
         Group group = groupRepository.getReferenceById(groupId);
 
         List<User> users = usersId.stream()
@@ -83,18 +84,21 @@ public class GroupService {
                     NotificationType.USER_ACTION
             );
         });
-        return savedGroup;
+        return GroupMapper.toDTO(group, group.getMembers());
     }
 
-    public List<Group> getUserGroups(Long userId) {
-        Optional<User> user = userRepository.findById(userId);
-        if (user.isPresent()) {
-            return groupRepository.findGroupsByMember(user.get());
-        }
-        return List.of();
+    public List<GroupResponseDTO> getUserGroups() {
+        final Long userId = CustomUserDetailsService.getCurrentUserIdFromContext();
+        List<Group> groups = groupRepository.findGroupsByMember(userId);
+        return groups.stream().map(group -> {
+            return GroupMapper.toDTO(group, group.getMembers());
+        }).toList();
     }
 
-    public List<Group> getAllGroups() {
-        return groupRepository.findByActiveTrue();
+    public List<GroupResponseDTO> getAllGroups() {
+        List<Group> groups = groupRepository.findByActiveTrue();
+        return groups.stream().map(group -> {
+            return GroupMapper.toDTO(group, group.getMembers());
+        }).toList();
     }
 }
