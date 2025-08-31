@@ -33,7 +33,7 @@ public class ZabbixTemplateGroupController {
         return ResponseEntity.ok(templateGroupService.deleteTemplateGroup(projectId, params));
     }
 
-    @GetMapping("/get/{projectId}")
+    @PostMapping("/get/{projectId}")
     public ResponseEntity<JsonNode> get(@PathVariable Long projectId,
                                         @RequestBody Map<String, Object> params) throws JsonProcessingException {
         return ResponseEntity.ok(templateGroupService.getTemplateGroups(projectId, params));
