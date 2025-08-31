@@ -1,5 +1,5 @@
 import api from '../inventoryapi';
-import type { ZabbixHostGroup } from '../../types/zabbix';
+import type { ZabbixHostGroup } from '../../types/ZabbixHostGroups';
 
 export const zabbixHostGroupsAPI = {
   create: async (projectId: number, data: object) => {

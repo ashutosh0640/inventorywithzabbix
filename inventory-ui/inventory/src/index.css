@@ -23,7 +23,7 @@
     --theme-bg-primary: #f8fafc;
     --theme-bg-secondary: #d4d4d4;
     --theme-bg-tertiary: #f1f5f9;
-    --theme-bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --theme-bg-gradient: background-image: linear-gradient(to right top, #2d2128, #2c232b, #2a242e, #282630, #262832, #242933, #232b34, #212c35, #1e2e35, #1d3035, #1c3234, #1d3332);
     --theme-text-primary: #1e293b;
     --theme-text-secondary: #64748b;
     --theme-text-accent: #3b82f6;

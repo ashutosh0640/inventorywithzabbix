@@ -1,8 +1,12 @@
 import { useState, useEffect } from 'react';
-import { 
-  AlertTriangle, Search, Filter, RefreshCw, CheckCircle, 
+import { useAppSelector } from '../../slice/hooks';
+import {
+  AlertTriangle, Search, Filter, RefreshCw, CheckCircle,
   XCircle, Clock, AlertCircle, MessageSquare, User, Download, Monitor
 } from 'lucide-react';
+import type { ZabbixProblem, ZabbixProblemGetParams } from '../../types/zabbixProblem';
+import { useGetZabbixProblems } from '../../features/zabbixQuery/zabbixProblemQuery'
+import FallbackSelectServer from './FallbackSelectServer';
 
 interface ProblemFilters {
   view: 'recent' | 'problems' | 'history';
@@ -16,17 +20,22 @@ interface ProblemFilters {
 }
 
 const ProblemsPage = () => {
-  const { state } = useApp();
-  const [problems, setProblems] = useState<Problem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const selectedServer = useAppSelector(state => state.zabbixserver.selectedServer);
+  if (!selectedServer) {
+    return <FallbackSelectServer />;
+  }
+
+  const getParams = {"output": "extend"} as ZabbixProblemGetParams;
+
+  const { data: zabbixProblems, isLoading: problemsLoading } = useGetZabbixProblems(getParams);
+  const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isDemo, setIsDemo] = useState(false);
   const [expandedProblem, setExpandedProblem] = useState<string | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [refreshInterval, setRefreshInterval] = useState<NodeJS.Timeout | null>(null);
   const [selectedProblems, setSelectedProblems] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
-  
+
   const [filters, setFilters] = useState<ProblemFilters>({
     view: 'recent',
     hostGroup: 'all',
@@ -38,153 +47,31 @@ const ProblemsPage = () => {
     tags: []
   });
 
-  // Mock data for dropdowns
-  const hostGroups = ['All Host Groups', 'Linux servers', 'Web servers', 'Database servers', 'Network devices'];
-  const hosts = ['All Hosts', 'web-server-01', 'db-server-01', 'mail-server-01', 'cache-server-01', 'load-balancer-01'];
-  const availableTags = ['critical', 'maintenance', 'network', 'database', 'application', 'security'];
 
-  useEffect(() => {
-    if (state.currentServer) {
-      fetchProblems();
-    }
-  }, [state.currentServer, filters]);
-
-  useEffect(() => {
-    if (autoRefresh) {
-      const interval = setInterval(fetchProblems, 30000);
-      setRefreshInterval(interval);
-    } else {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-        setRefreshInterval(null);
-      }
-    }
-
-    return () => {
-      if (refreshInterval) {
-        clearInterval(refreshInterval);
-      }
-    };
-  }, [autoRefresh]);
-
-  const fetchProblems = async () => {
-    if (!state.currentServer) return;
-
-    try {
-      setLoading(true);
-      const data = await apiService.getProblems(state.currentServer.id);
-      
-      // Enhanced mock data with all required fields
-      const enhancedProblems = data.map((problem: any, index: number) => ({
-        ...problem,
-        time: new Date(Date.now() - Math.random() * 86400000).toISOString(),
-        recoveryTime: Math.random() > 0.7 ? new Date(Date.now() - Math.random() * 3600000).toISOString() : null,
-        status: Math.random() > 0.3 ? 'PROBLEM' : 'OK',
-        info: `Trigger: ${problem.name}`,
-        tags: availableTags.slice(0, Math.floor(Math.random() * 3) + 1),
-        actions: ['Email sent', 'SMS sent'].slice(0, Math.floor(Math.random() * 2) + 1)
-      }));
-      
-      setProblems(enhancedProblems);
-      setIsDemo(false);
-    } catch (error) {
-      console.warn('API not available, using demo data:', error);
-      setIsDemo(true);
-      
-      // Enhanced demo data
-      const demoProblems = [
-        {
-          id: '1',
-          name: 'High CPU usage on web-server-01',
-          severity: 'high',
-          host: 'web-server-01',
-          duration: '2h 15m',
-          acknowledged: false,
-          serverId: state.currentServer.id,
-          time: new Date(Date.now() - 8100000).toISOString(),
-          recoveryTime: null,
-          status: 'PROBLEM',
-          info: 'Trigger: CPU utilization > 90%',
-          tags: ['critical', 'application'],
-          actions: ['Email sent to admin@example.com']
-        },
-        {
-          id: '2',
-          name: 'Database connection pool exhausted',
-          severity: 'disaster',
-          host: 'db-server-01',
-          duration: '45m 20s',
-          acknowledged: false,
-          serverId: state.currentServer.id,
-          time: new Date(Date.now() - 2720000).toISOString(),
-          recoveryTime: null,
-          status: 'PROBLEM',
-          info: 'Trigger: Connection pool > 95%',
-          tags: ['critical', 'database'],
-          actions: ['Email sent', 'SMS sent']
-        },
-        {
-          id: '3',
-          name: 'Disk space low on storage-01',
-          severity: 'average',
-          host: 'storage-01',
-          duration: '1h 45m',
-          acknowledged: true,
-          serverId: state.currentServer.id,
-          time: new Date(Date.now() - 6300000).toISOString(),
-          recoveryTime: null,
-          status: 'PROBLEM',
-          info: 'Trigger: Free disk space < 10%',
-          tags: ['maintenance'],
-          actions: ['Email sent']
-        },
-        {
-          id: '4',
-          name: 'Network interface restored on switch-01',
-          severity: 'information',
-          host: 'switch-01',
-          duration: '0m',
-          acknowledged: false,
-          serverId: state.currentServer.id,
-          time: new Date(Date.now() - 900000).toISOString(),
-          recoveryTime: new Date(Date.now() - 300000).toISOString(),
-          status: 'OK',
-          info: 'Trigger: Network interface status',
-          tags: ['network'],
-          actions: []
-        }
-      ];
-      
-      setProblems(demoProblems);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleRefresh = () => {
-    fetchProblems();
-  };
+  // const handleRefresh = () => {
+  //   fetchProblems();
+  // };
 
   const toggleAutoRefresh = () => {
     setAutoRefresh(!autoRefresh);
   };
 
   const toggleProblemSelection = (problemId: string) => {
-    setSelectedProblems(prev => 
-      prev.includes(problemId) 
+    setSelectedProblems(prev =>
+      prev.includes(problemId)
         ? prev.filter(id => id !== problemId)
         : [...prev, problemId]
     );
   };
 
   const toggleSelectAll = () => {
-    setSelectedProblems(prev => 
+    setSelectedProblems(prev =>
       prev.length === filteredProblems.length ? [] : filteredProblems.map(problem => problem.id)
     );
   };
 
   const handleAcknowledge = (problemIds: string[]) => {
-    setProblems(prev => prev.map(problem => 
+    setProblems(prev => prev.map(problem =>
       problemIds.includes(problem.id) ? { ...problem, acknowledged: true } : problem
     ));
     setSelectedProblems([]);
@@ -254,19 +141,19 @@ const ProblemsPage = () => {
 
   const filteredProblems = problems.filter(problem => {
     const matchesSearch = problem.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         problem.host.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesView = filters.view === 'recent' || 
-                       (filters.view === 'problems' && problem.status === 'PROBLEM') ||
-                       (filters.view === 'history');
-    
+      problem.host.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesView = filters.view === 'recent' ||
+      (filters.view === 'problems' && problem.status === 'PROBLEM') ||
+      (filters.view === 'history');
+
     const matchesSeverity = filters.severity === 'all' || problem.severity === filters.severity;
     const matchesStatus = filters.status === 'all' || problem.status === filters.status;
-    const matchesAcknowledged = filters.acknowledged === 'all' || 
-                               (filters.acknowledged === 'acknowledged' && problem.acknowledged) ||
-                               (filters.acknowledged === 'unacknowledged' && !problem.acknowledged);
+    const matchesAcknowledged = filters.acknowledged === 'all' ||
+      (filters.acknowledged === 'acknowledged' && problem.acknowledged) ||
+      (filters.acknowledged === 'unacknowledged' && !problem.acknowledged);
     const matchesHost = filters.host === 'all' || filters.host === 'All Hosts' || problem.host === filters.host;
-    
+
     return matchesSearch && matchesView && matchesSeverity && matchesStatus && matchesAcknowledged && matchesHost;
   });
 
@@ -318,7 +205,7 @@ const ProblemsPage = () => {
         </div>
         <div className="flex gap-2">
           {selectedProblems.length > 0 && (
-            <button 
+            <button
               onClick={() => handleAcknowledge(selectedProblems)}
               className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
@@ -328,20 +215,18 @@ const ProblemsPage = () => {
           )}
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-              showFilters ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
-            }`}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${showFilters ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+              }`}
           >
             <Filter size={20} />
             Filters
           </button>
           <button
             onClick={toggleAutoRefresh}
-            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${
-              autoRefresh 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 transition-colors ${autoRefresh
+                ? 'bg-green-600 hover:bg-green-700 text-white'
                 : 'bg-gray-200 hover:bg-gray-300 text-gray-700'
-            }`}
+              }`}
           >
             <RefreshCw size={20} className={autoRefresh ? 'animate-spin' : ''} />
             Auto Refresh
@@ -372,18 +257,17 @@ const ProblemsPage = () => {
               <button
                 key={view.key}
                 onClick={() => setFilters(prev => ({ ...prev, view: view.key as any }))}
-                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
-                  filters.view === view.key
+                className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${filters.view === view.key
                     ? 'bg-white text-blue-600 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
-                }`}
+                  }`}
               >
                 <view.icon size={16} />
                 {view.label}
               </button>
             ))}
           </div>
-          
+
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
             <input
@@ -512,9 +396,8 @@ const ProblemsPage = () => {
                   <td className="px-4 py-3 whitespace-nowrap">
                     <div className="flex items-center gap-2">
                       {getStatusIcon(problem.status)}
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${
-                        problem.status === 'PROBLEM' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
-                      }`}>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${problem.status === 'PROBLEM' ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'
+                        }`}>
                         {problem.status}
                       </span>
                     </div>

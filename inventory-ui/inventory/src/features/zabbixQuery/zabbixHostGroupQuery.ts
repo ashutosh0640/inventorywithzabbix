@@ -1,18 +1,24 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { zabbixHostGroupsAPI } from '../../service/zabbixApi/zabbixHostGroupAPI';
 import { useProjectId } from './projectIdHook';
-import type { ZabbixHostGroup, ZabbixHostgroupCreateParams, HostGroupUpdateParams } from '../../types/ZabbixHostGroups';
+import type { 
+  ZabbixHostGroup,
+  ZabbixHostgroupGetParams,
+  ZabbixHostgroupDeleteParams,
+  ZabbixHostgroupCreateParams,
+  HostGroupUpdateParams
+} from '../../types/ZabbixHostGroups';
 
 const HOSTGROUPS = 'HostGroups' as const;
 
-/** e.g. queryKeys.list() ➜ ['Projects','list'] */
+/** e.g. queryKeys.list() ➜ ['HostGroups','list'] */
 const queryKeys = {
   base: [HOSTGROUPS] as const,
   list: () => [...queryKeys.base, 'list'] as const,
 };
 
 // Get host groups
-export const useGetHostGroups = (params: object) => {
+export const useGetHostGroups = (params: ZabbixHostgroupGetParams) => {
   const projectId = useProjectId();
   if (!projectId) {
     throw new Error('Project ID is required to fetch host groups');
@@ -52,7 +58,7 @@ export const useDeleteHostGroups = () => {
     throw new Error('Project ID is required to fetch host groups');
   }
   return useMutation({
-    mutationFn:  ( params: string[] ) =>
+    mutationFn: (params: string[]) =>
       zabbixHostGroupsAPI.delete(projectId, params),
     onSuccess: () => invalidateLists(queryClient)
   });
@@ -66,7 +72,7 @@ export const useUpdateHostGroup = () => {
     throw new Error('Project ID is required to fetch host groups');
   }
   return useMutation({
-    mutationFn: ( params: HostGroupUpdateParams ) =>
+    mutationFn: (params: HostGroupUpdateParams) =>
       zabbixHostGroupsAPI.update(projectId, params),
     onSuccess: () => invalidateLists(queryClient)
   });

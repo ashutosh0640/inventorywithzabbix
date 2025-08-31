@@ -125,7 +125,7 @@ export interface ZabbixHostgroupGetParams {
   startSearch?: boolean;
   sortfield?: Array<"name" | "groupid"> | "name" | "groupid";
   sortorder?: "ASC" | "DESC";
-  selectHosts?: "count" | "extend" | Array<keyof ZabbixHostGroup>;
+  selectHosts?: "count" | "extend" | Array<keyof ZabbixHostRef>;
   selectTemplates?: "count" | "extend";
   limit?: number;
 }

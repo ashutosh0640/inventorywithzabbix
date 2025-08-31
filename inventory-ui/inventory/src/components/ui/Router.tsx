@@ -12,6 +12,7 @@ import { LoginRoute } from '../routes/LoginRoutes';
 import { RackDetails } from '../ui/rack/RackDetails';
 import Devices from '../../pages/DevicePage';
 import HostGroups from '../../pages/zabbix/HostGroups';
+import TemplateGroups from '../../pages/zabbix/TemplateGroups';
 
 
 const Router = () => {
@@ -67,7 +68,7 @@ const Router = () => {
               <Route path="hosts" element={<div>Zabbix Hosts</div>} />
               <Route path="hostgroup" element={<HostGroups />} />
               <Route path="templates" element={<div>Zabbix Templates</div>} />
-              <Route path="templategroup" element={<div>Zabbix Template Groups</div>} />
+              <Route path="templategroup" element={<TemplateGroups/>} />
               <Route path="management">
                 <Route path="users" element={<div>Zabbix Users</div>} />
                 <Route path="usergroup" element={<div>Zabbix User Groups</div>} />

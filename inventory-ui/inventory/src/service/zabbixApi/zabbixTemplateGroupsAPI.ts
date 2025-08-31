@@ -1,3 +1,4 @@
+import type { ZabbixTemplateGroup } from '../../types/ZabbixTemplateGroups';
 import api from '../inventoryapi';
 
 export const zabbixTemplateGroupsAPI = {
@@ -13,9 +14,9 @@ export const zabbixTemplateGroupsAPI = {
         return response.data;
     },
 
-    get: async (projectId: number, data: object) => {
+    get: async (projectId: number, data: object): Promise<ZabbixTemplateGroup[]> => {
         const response = await api.post(`/api/v1/zabbix/templategroups/get/${projectId}`, data);
-        return response.data;
+        return response.data.result as ZabbixTemplateGroup[];
     },
 
     massAdd: async (projectId: number, data: object) => {

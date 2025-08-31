@@ -25,11 +25,16 @@ const HostGroups: React.FC = () => {
     return <FallbackSelectServer />;
   }
 
-  const getParam = {} as ZabbixHostgroupGetParams;
+  const getParams = {
+    "output": "extend",
+    "selectHosts": "extend",
+    "sortfield": "name",
+    "sortorder": "ASC"
+  } as ZabbixHostgroupGetParams;
   const [deleteParam, setDeleteParam] = useState<string[]>([]);
   const [updateParam, setUpdateParam] = useState<HostGroupUpdateParams>({ groupid: '', name: '' });
 
-  const { data: zabbixHostGroups } = useGetHostGroups(getParam);
+  const { data: zabbixHostGroups, isLoading: hostGroupLoading } = useGetHostGroups(getParams);
   const { mutate: createHostGroup } = useCreateHostGroup();
   const { mutate: updateHostGroup } = useUpdateHostGroup();
   const { mutate: deleteHostGroups } = useDeleteHostGroups();
@@ -44,11 +49,12 @@ const HostGroups: React.FC = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showMassActionModal, setShowMassActionModal] = useState(false);
   const [showPropagateModal, setShowPropagateModal] = useState(false);
-  const [editingGroup, setEditingGroup] = useState<ZabbixHostGroup | null>(null);
   const [massAction, setMassAction] = useState<'enable' | 'disable' | 'delete' | 'update' | 'clone' | 'merge'>('enable');
   const [formData, setFormData] = useState<ZabbixHostgroupCreateParams>({
     name: ''
   });
+
+  console.log("Getting zabbix host group: ", zabbixHostGroups)
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -64,9 +70,7 @@ const HostGroups: React.FC = () => {
   }
 
   const handleDelete = () => {
-    console.log("delete button clicked", deleteParam.length, deleteParam);
     if (deleteParam.length > 0) {
-      console.log("Deleting host group with ID:", deleteParam);
       deleteHostGroups(deleteParam, {
         onSuccess: () => {
           setIsModalOpen(false);
@@ -105,8 +109,6 @@ const HostGroups: React.FC = () => {
           setAlertMessage('Failed to create host group.');
         }
       });
-
-
     } catch (error) {
       console.error('Failed to create host group:', error);
       // For demo mode, simulate creation
@@ -125,7 +127,6 @@ const HostGroups: React.FC = () => {
         onSuccess: (response) => {
           console.log("Updated host group:", response);
           setShowEditModal(false);
-          setEditingGroup(null);
           resetForm();
           setAlertType('success');
           setAlertMessage(`Host Group updated successfully.`);
@@ -143,35 +144,13 @@ const HostGroups: React.FC = () => {
     }
   };
 
-  const handleDeleteGroup = async (groupId: string) => {
-    try {
-      openModal(groupId);
-    } catch (error) {
-      console.error('Failed to delete host group:', error);
-      // For demo mode, simulate deletion
-
-    }
+  const handleDeleteGroup = (groupId: string) => {
+    openModal(groupId);
   };
 
-  const handleMassAction = async () => {
+  const handleMassAction = () => { };
 
-    try {
-
-    } catch (error) {
-
-    }
-  };
-
-  const handlePropagateSettings = async () => {
-
-    try {
-
-    } catch (error) {
-      console.error('Failed to propagate settings:', error);
-      // For demo mode, simulate propagation
-
-    }
-  };
+  const handlePropagateSettings = () => { };
 
   const resetForm = () => {
     setFormData({
@@ -181,7 +160,6 @@ const HostGroups: React.FC = () => {
 
   const openEditModal = (group: ZabbixHostGroup) => {
     setUpdateParam({ groupid: group.groupid, name: group.name });
-    console.log("Editing group:", group, updateParam);
     setShowEditModal(true);
   };
 
@@ -194,12 +172,12 @@ const HostGroups: React.FC = () => {
   };
 
   const toggleSelectAll = () => {
-    if (!filteredGroups) return; // exit early if undefined
+    if (!filteredGroups) return;
 
     setSelectedGroups(prev =>
       prev.length === filteredGroups.length
         ? []
-        : filteredGroups.map(group => group.groupid) // use groupid from Zabbix API
+        : filteredGroups.map(group => group.groupid)
     );
   };
 
@@ -228,7 +206,6 @@ const HostGroups: React.FC = () => {
   });
 
   if (!selectedServer) {
-    console.log("No server selected, showing fallback component");
     return (
       <div className="p-6">
         <div className="text-center py-12">
@@ -240,7 +217,7 @@ const HostGroups: React.FC = () => {
     );
   }
 
-  if (loading) {
+  if (hostGroupLoading) {
     return (
       <div className="p-6">
         <div className="animate-pulse">
@@ -257,11 +234,11 @@ const HostGroups: React.FC = () => {
 
   return (
     <>
-      <div className="border-2 border-green-600">
-        <div className="flex justify-between items-center mb-6">
+      <div>
+        <div className="flex justify-between items-center mb-4">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Host Groups</h2>
-            <p className="text-gray-600 mt-1">Organize and manage host group collections</p>
+            <h2 className="text-base font-bold text-gray-900">Host Groups</h2>
+            <p className="text-gray-600 mt-1 text-sm">Organize and manage host group collections</p>
           </div>
           <div className="flex gap-2">
             {selectedGroups.length > 0 && (
@@ -287,13 +264,13 @@ const HostGroups: React.FC = () => {
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             >
               <Plus size={20} />
-              Add Group
+              Add Host Group
             </button>
           </div>
         </div>
 
         {/* Filters */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
+        <div className="bg-white rounded-lg border border-gray-200 p-1 mb-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
@@ -324,11 +301,11 @@ const HostGroups: React.FC = () => {
 
         {/* Host Groups Table */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="overflow-y-auto h-[500px]">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-blue-200 border-b border-gray-200">
                 <tr>
-                  <th className="px-6 py-3 text-left">
+                  <th className=" px-4 p-2 text-left">
                     <input
                       type="checkbox"
                       checked={selectedGroups.length === filteredGroups?.length && filteredGroups.length > 0}
@@ -336,30 +313,21 @@ const HostGroups: React.FC = () => {
                       className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                     />
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
                     Group Name
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
                     Hosts
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Subgroups
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Permissions
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="p-2 text-left text-xs font-medium text-gray-800 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {filteredGroups && filteredGroups.map((group) => (
+                {filteredGroups?.map((group) => (
                   <tr key={group.groupid} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className=" px-4 py-1 whitespace-nowrap">
                       <input
                         type="checkbox"
                         checked={selectedGroups.includes(group.groupid)}
@@ -367,7 +335,7 @@ const HostGroups: React.FC = () => {
                         className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="p-1 whitespace-nowrap">
                       <div className="flex items-center">
                         <Users className="text-gray-400 mr-3" size={16} />
                         <div>
@@ -375,53 +343,15 @@ const HostGroups: React.FC = () => {
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
-                      {/* <div className="text-sm text-gray-900 max-w-xs truncate">
-                      {group. || 'No description'}
-                    </div> */}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="p-1 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getGroupSizeColor(group.hosts?.length || 0)}`}>
-                        {group?.hosts?.length} hosts
+                        {group?.hosts?.length}
                       </span>
+                      <span>{group.hosts?.map((host, index) => (
+                        <span className='inline-flex p-1 text-[0.6rem] font-thin rounded-full bg-orange-300' key={index}>{host.name}</span>
+                      ))}</span>
                     </td>
-                    <td className="px-6 py-4">
-                      {/* <div className="flex flex-wrap gap-1">
-                      {group.subgroups && group.subgroups.length > 0 ? (
-                        <>
-                          {group.subgroups.slice(0, 2).map((subgroup) => (
-                            <span key={subgroup} className="inline-flex px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                              {subgroup}
-                            </span>
-                          ))}
-                          {group.subgroups.length > 2 && (
-                            <span className="inline-flex px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
-                              +{group.subgroups.length - 2} more
-                            </span>
-                          )}
-                        </>
-                      ) : (
-                        <span className="text-xs text-gray-500">None</span>
-                      )}
-                    </div> */}
-                    </td>
-                    <td className="px-6 py-4">
-                      {/* <div className="flex flex-wrap gap-1">
-                      {group.permissions && group.permissions.length > 0 ? (
-                        group.permissions.map((permission) => (
-                          <span key={permission} className={`inline-flex px-2 py-1 text-xs rounded ${permission === 'Read-write' ? 'bg-green-100 text-green-800' :
-                            permission === 'Read' ? 'bg-blue-100 text-blue-800' :
-                              'bg-red-100 text-red-800'
-                            }`}>
-                            {permission}
-                          </span>
-                        ))
-                      ) : (
-                        <span className="text-xs text-gray-500">None</span>
-                      )}
-                    </div> */}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <td className="p-1 whitespace-nowrap text-right text-sm font-medium">
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => openEditModal(group)}
@@ -446,7 +376,7 @@ const HostGroups: React.FC = () => {
           </div>
         </div>
 
-        {filteredGroups && filteredGroups.length === 0 && (
+        {filteredGroups?.length === 0 && (
           <div className="text-center py-12">
             <Users className="mx-auto h-12 w-12 text-gray-400 mb-4" />
             <h3 className="text-lg font-medium text-gray-900 mb-2">No host groups found</h3>
@@ -482,113 +412,7 @@ const HostGroups: React.FC = () => {
                       placeholder="Production servers"
                     />
                   </div>
-                  {/* <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <input
-                    type="text"
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Group description"
-                  />
-                </div> */}
                 </div>
-
-                {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Hosts</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.name.map((host) => (
-                    <span key={host} className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                      {host}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, hosts: prev.hosts.filter(h => h !== host) }))}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.hosts.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, hosts: [...prev.hosts, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select hosts...</option>
-                  {availableHosts.filter(host => !formData.hosts.includes(host)).map((host) => (
-                    <option key={host} value={host}>{host}</option>
-                  ))}
-                </select>
-              </div> */}
-
-                <div>
-                  {/* <label className="block text-sm font-medium text-gray-700 mb-1">Subgroups</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.subgroups.map((subgroup) => (
-                    <span key={subgroup} className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                      {subgroup}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, subgroups: prev.subgroups.filter(s => s !== subgroup) }))}
-                        className="ml-1 text-green-600 hover:text-green-800"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div> */}
-                  {/* <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.subgroups.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, subgroups: [...prev.subgroups, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select subgroups...</option>
-                  {availableSubgroups.filter(subgroup => !formData.subgroups.includes(subgroup)).map((subgroup) => (
-                    <option key={subgroup} value={subgroup}>{subgroup}</option>
-                  ))}
-                </select> */}
-                </div>
-
-                {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.permissions.map((permission) => (
-                    <span key={permission} className={`inline-flex items-center px-2 py-1 text-xs rounded ${permission === 'Read-write' ? 'bg-green-100 text-green-800' :
-                      permission === 'Read' ? 'bg-blue-100 text-blue-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                      {permission}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, permissions: prev.permissions.filter(p => p !== permission) }))}
-                        className="ml-1 hover:opacity-75"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.permissions.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, permissions: [...prev.permissions, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select permissions...</option>
-                  {availablePermissions.filter(permission => !formData.permissions.includes(permission)).map((permission) => (
-                    <option key={permission} value={permission}>{permission}</option>
-                  ))}
-                </select>
-              </div> */}
               </div>
 
               <div className="flex justify-end gap-2 mt-6">
@@ -632,111 +456,6 @@ const HostGroups: React.FC = () => {
                       className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                   </div>
-                  {/* <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <input
-                    type="text"
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                </div> */}
-                </div>
-
-                <div>
-                  {/* <label className="block text-sm font-medium text-gray-700 mb-1">Hosts</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.hosts.map((host) => (
-                    <span key={host} className="inline-flex items-center px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded">
-                      {host}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, hosts: prev.hosts.filter(h => h !== host) }))}
-                        className="ml-1 text-blue-600 hover:text-blue-800"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div> */}
-                  {/* <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.hosts.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, hosts: [...prev.hosts, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Add hosts...</option>
-                  {availableHosts.filter(host => !formData.hosts.includes(host)).map((host) => (
-                    <option key={host} value={host}>{host}</option>
-                  ))}
-                </select> */}
-                </div>
-
-                {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Subgroups</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.subgroups.map((subgroup) => (
-                    <span key={subgroup} className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                      {subgroup}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, subgroups: prev.subgroups.filter(s => s !== subgroup) }))}
-                        className="ml-1 text-green-600 hover:text-green-800"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.subgroups.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, subgroups: [...prev.subgroups, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Add subgroups...</option>
-                  {availableSubgroups.filter(subgroup => !formData.subgroups.includes(subgroup)).map((subgroup) => (
-                    <option key={subgroup} value={subgroup}>{subgroup}</option>
-                  ))}
-                </select>
-              </div> */}
-
-                <div>
-                  {/* <label className="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.permissions.map((permission) => (
-                    <span key={permission} className={`inline-flex items-center px-2 py-1 text-xs rounded ${permission === 'Read-write' ? 'bg-green-100 text-green-800' :
-                      permission === 'Read' ? 'bg-blue-100 text-blue-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                      {permission}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, permissions: prev.permissions.filter(p => p !== permission) }))}
-                        className="ml-1 hover:opacity-75"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div> */}
-                  {/* <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.permissions.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, permissions: [...prev.permissions, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Add permissions...</option>
-                  {availablePermissions.filter(permission => !formData.permissions.includes(permission)).map((permission) => (
-                    <option key={permission} value={permission}>{permission}</option>
-                  ))}
-                </select> */}
                 </div>
               </div>
 
@@ -800,37 +519,6 @@ const HostGroups: React.FC = () => {
                       </div>
                     )}
                     <div>
-                      {/* <label className="block text-sm font-medium text-gray-700 mb-1">Permissions</label>
-                    <div className="flex flex-wrap gap-2 mb-2">
-                      {formData.permissions.map((permission) => (
-                        <span key={permission} className={`inline-flex items-center px-2 py-1 text-xs rounded ${permission === 'Read-write' ? 'bg-green-100 text-green-800' :
-                          permission === 'Read' ? 'bg-blue-100 text-blue-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                          {permission}
-                          <button
-                            onClick={() => setFormData(prev => ({ ...prev, permissions: prev.permissions.filter(p => p !== permission) }))}
-                            className="ml-1 hover:opacity-75"
-                          >
-                            <X size={12} />
-                          </button>
-                        </span>
-                      ))}
-                    </div> */}
-                      {/* <select
-                      onChange={(e) => {
-                        if (e.target.value && !formData.permissions.includes(e.target.value)) {
-                          setFormData(prev => ({ ...prev, permissions: [...prev.permissions, e.target.value] }));
-                        }
-                        e.target.value = '';
-                      }}
-                      className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    >
-                      <option value="">Add permissions...</option>
-                      {availablePermissions.filter(permission => !formData.permissions.includes(permission)).map((permission) => (
-                        <option key={permission} value={permission}>{permission}</option>
-                      ))}
-                    </select> */}
                     </div>
                   </div>
                 )}
@@ -871,40 +559,6 @@ const HostGroups: React.FC = () => {
                 <p className="text-sm text-gray-600">
                   Propagate permissions and settings to all selected host groups and their subgroups.
                 </p>
-
-                {/* <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Permissions to Propagate</label>
-                <div className="flex flex-wrap gap-2 mb-2">
-                  {formData.permissions.map((permission) => (
-                    <span key={permission} className={`inline-flex items-center px-2 py-1 text-xs rounded ${permission === 'Read-write' ? 'bg-green-100 text-green-800' :
-                      permission === 'Read' ? 'bg-blue-100 text-blue-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
-                      {permission}
-                      <button
-                        onClick={() => setFormData(prev => ({ ...prev, permissions: prev.permissions.filter(p => p !== permission) }))}
-                        className="ml-1 hover:opacity-75"
-                      >
-                        <X size={12} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-                <select
-                  onChange={(e) => {
-                    if (e.target.value && !formData.permissions.includes(e.target.value)) {
-                      setFormData(prev => ({ ...prev, permissions: [...prev.permissions, e.target.value] }));
-                    }
-                    e.target.value = '';
-                  }}
-                  className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                >
-                  <option value="">Select permissions...</option>
-                  {availablePermissions.filter(permission => !formData.permissions.includes(permission)).map((permission) => (
-                    <option key={permission} value={permission}>{permission}</option>
-                  ))}
-                </select>
-              </div> */}
               </div>
 
               <div className="flex justify-end gap-2 mt-6">
@@ -934,7 +588,6 @@ const HostGroups: React.FC = () => {
         onClose={handleModelClose}
         onConfirm={handleDelete}
       />
-
 
       {alertMessage && (
         <AlertMessage

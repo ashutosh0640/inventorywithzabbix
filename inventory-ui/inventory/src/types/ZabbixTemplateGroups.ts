@@ -10,25 +10,50 @@ export interface ZabbixApiRequest<T> {
     id: number;
 }
 //========================================================//
-export interface ZabbixTemplateGroup {
-    groupid: string;   // unique group ID
-    name: string;      // group name
-    flags: string;     // internal flags (0=manual, 4=discovered, etc.)
-    uuid?: string;     // optional UUID
+/**
+ * Host Group Object
+ */
+/** Reference to a Host (when using selectHosts) */
+export interface ZabbixTemplateRef {
+  templateid: string;
+  host?: string;   // technical template name
+  name?: string;   // visible template name
 }
+
+/** Template Group object from Zabbix API */
+export interface ZabbixTemplateGroup {
+  groupid: string;  // unique ID
+  name: string;     // group name
+
+  /** "0" = plain, "4" = discovered */
+  flags?: string;
+
+  /** "1" = internal (system) group, "0" = normal */
+  internal?: string;
+
+  /** UUID (Zabbix 6.0+) */
+  uuid?: string;
+
+  /** Array of templates if requested with selectTemplates */
+  templates?: ZabbixTemplateRef[];
+}
+
 //========================================================//
 
 /**
  * 'templategroup.get' Zabbix API method parameters.
  */
 export interface TemplateGroupGetParams {
-    output?: 'extend' | string[];        // "extend" or specific fields
-    groupids?: string[];                 // filter by groupids
-    selectTemplates?: 'extend' | string[]; // fetch related templates
-    filter?: Record<string, string | string[]>; // flexible filter
-    limit?: number;                      // limit results
-    sortfield?: string | string[];       // sort by field(s)
-    sortorder?: 'ASC' | 'DESC';          // sort order
+  groupids?: string[]; // Filter by template group IDs
+  output?: "extend" | Array<keyof ZabbixTemplateGroup>; // Fields to return
+  filter?: Partial<Pick<ZabbixTemplateGroup, "name">>; // Exact match filtering
+  search?: Partial<Pick<ZabbixTemplateGroup, "name">>; // Partial match search
+  searchByAny?: boolean; // Match any search field
+  startSearch?: boolean; // Match from beginning of string
+  sortfield?: Array<"name" | "groupid"> | "name" | "groupid"; // Sorting field
+  sortorder?: "ASC" | "DESC"; // Sorting direction
+  selectTemplates?: "count" | "extend" | Array<keyof ZabbixTemplateRef>; // Include templates
+  limit?: number; // Max number of results
 }
 //========================================================//
 /**
